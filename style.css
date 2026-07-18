@@ -12,30 +12,30 @@
   --font-scale: 1.0;
 }
 
-/* 라이트 테마 (밀크 크림 화이트 + 파스텔 소프트 블루) */
+/* 라이트 테마 (따뜻한 아날로그 감성 크림 & 브라운) */
 .theme-light {
-  --bg:           #FDFBF7;
-  --card:         #FFFFFF;
-  --card-hover:   #D4E6F1;
-  --text:         #1E2D3D;
-  --text-sub:     #5A6A7A;
-  --border:       #1E2D3D;
-  --accent:       #A9CCE3;
-  --accent-h:     #7FB3D5;
-  --shadow:       rgba(30, 45, 61, 0.08);
-  --modal-bg:     #FDFBF7;
-  --overlay:      rgba(30, 45, 61, 0.42);
-  --danger:       #FADBD8;
-  --danger-h:     #F1948A;
-  --result-bg:    #EAF4FB;
-  --result-border:#7FB3D5;
-  --warn-bg:      #FEF9E7;
-  --warn-border:  #F39C12;
-  --mic-active:   #FADBD8;
-  --mic-border:   #E74C3C;
-  --stt-dot:      #E74C3C;
-  --step-num-bg:  #1E2D3D;
-  --step-num-txt: #FFFFFF;
+  --bg:           #faf6ee; /* Warm cream/beige background */
+  --card:         #fefbf4; /* Solid warm cream card */
+  --card-hover:   #fef1e8; /* Soft pinkish cream matching the middle card in screenshot */
+  --text:         #4a3b2c; /* Warm dark brown text */
+  --text-sub:     #7a6350; /* Medium warm brown text */
+  --border:       #8c7355; /* Medium warm brown border */
+  --accent:       #f2d5c4; /* Soft cream/orange accent */
+  --accent-h:     #ebba9d; /* Warm orange highlight */
+  --shadow:       rgba(92, 75, 55, 0.08); /* Soft brown shadow */
+  --modal-bg:     #fefbf4;
+  --overlay:      rgba(74, 59, 44, 0.4);
+  --danger:       #fcdad7;
+  --danger-h:     #f8b4ae;
+  --result-bg:    #fdf5ed;
+  --result-border:#ebba9d;
+  --warn-bg:      #fdfbf7;
+  --warn-border:  #eeb480;
+  --mic-active:   #fcdad7;
+  --mic-border:   #e78077;
+  --stt-dot:      #e78077;
+  --step-num-bg:  #8c7355;
+  --step-num-txt: #ffffff;
 }
 
 /* 다크 테마 */
@@ -77,11 +77,19 @@ html { font-size: calc(var(--font-size-base) * var(--font-scale)); }
 body {
   font-family: var(--font-family);
   font-size: 1rem;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: url('background.changer.png');
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: 1920px auto;
+  background-attachment: fixed;
   color: var(--text);
   line-height: 1.65;
   min-height: 100vh;
   transition: background var(--transition), color var(--transition);
+}
+.theme-dark body {
+  background-image: none !important;
 }
 
 button { font-family: inherit; cursor: pointer; }
@@ -94,13 +102,20 @@ button { font-family: inherit; cursor: pointer; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.6rem;
-  border-bottom: 3px solid var(--border);
-  background: var(--card);
-  box-shadow: 0 4px 14px var(--shadow);
+  padding: 1.5rem 1.6rem;
+  border-bottom: none;
+  background: transparent;
+  box-shadow: none;
   position: sticky;
   top: 0;
   z-index: 100;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.theme-dark .app-header {
+  background: var(--card);
+  border-bottom: 3.5px solid var(--border);
+  box-shadow: 0 4px 14px var(--shadow);
 }
 
 .logo {
@@ -116,14 +131,15 @@ button { font-family: inherit; cursor: pointer; }
   object-fit: contain;
 }
 .logo-text {
-  font-size: 1.8rem;
-  font-weight: 900;
+  font-size: 1.6rem;
+  font-weight: bold;
   font-family: 'Gowun Batang', serif;
-  border: 3px solid var(--border);
-  padding: 0.1rem 0.9rem;
-  border-radius: var(--radius-sm);
-  background: var(--bg);
-  box-shadow: 2px 2px 0 var(--border);
+  border: 2px solid var(--border);
+  padding: 0.3rem 1rem;
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: none;
+  color: var(--text);
 }
 
 .settings-btn {
@@ -131,13 +147,13 @@ button { font-family: inherit; cursor: pointer; }
   align-items: center;
   gap: 0.45rem;
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: bold;
   color: var(--text);
-  background: var(--bg);
-  border: 3px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 0.5rem 1rem;
-  box-shadow: 3px 3px 0 var(--border);
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 0.6rem 1.2rem;
+  box-shadow: none;
   transition: all var(--transition);
 }
 .settings-btn:hover  { background: var(--card-hover); }
@@ -148,7 +164,24 @@ button { font-family: inherit; cursor: pointer; }
 /* ==================================================
    5. 메인 컨테이너 & SPA 화면
    ================================================== */
-.app-container { max-width: 840px; margin: 0 auto; padding: 2rem 1.3rem 7rem; }
+.app-container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 7rem;
+  background: rgba(254, 251, 244, 0.96);
+  min-height: 100vh;
+  box-shadow: 0 0 50px rgba(92, 75, 55, 0.12);
+  border-left: 2px solid var(--border);
+  border-right: 2px solid var(--border);
+  position: relative;
+  z-index: 10;
+}
+.theme-dark .app-container {
+  background: var(--bg) !important;
+  box-shadow: none !important;
+  border-left: none !important;
+  border-right: none !important;
+}
 
 .screen { display: none; }
 .screen.active { display: block; animation: fadeIn .32s ease-out; }
@@ -164,11 +197,11 @@ button { font-family: inherit; cursor: pointer; }
   margin-bottom: 1.6rem;
   padding: 0.65rem 1.4rem;
   font-size: 1.1rem;
-  font-weight: 700;
+  font-weight: bold;
   background: var(--card);
   color: var(--text);
-  border: 3px solid var(--border);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  border-radius: 12px;
   box-shadow: 3px 3px 0 var(--border);
   transition: all var(--transition);
 }
@@ -181,11 +214,11 @@ button { font-family: inherit; cursor: pointer; }
   padding: 1.15rem;
   font-family: inherit;
   font-size: 1.15rem;
-  font-weight: 900;
+  font-weight: bold;
   background: var(--accent);
   color: var(--text);
-  border: 3.5px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 2px solid var(--border);
+  border-radius: 16px;
   box-shadow: 0 4px 0 var(--border);
   text-align: center;
   transition: all 0.12s;
@@ -203,8 +236,8 @@ button { font-family: inherit; cursor: pointer; }
   padding: 1.1rem 1.2rem;
   background: var(--bg);
   color: var(--text);
-  border: 3px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 2px solid var(--border);
+  border-radius: 16px;
   transition: border-color var(--transition), background var(--transition);
   margin-bottom: 1rem;
 }
@@ -212,20 +245,20 @@ button { font-family: inherit; cursor: pointer; }
   outline: none;
   border-color: var(--accent-h);
   background: var(--card);
-  box-shadow: 0 0 0 3px rgba(127,179,213,.25);
+  box-shadow: 0 0 0 3px rgba(235,186,157,.25);
 }
 .app-textarea { min-height: 150px; resize: vertical; }
 
 .screen-content {
   background: var(--card);
-  border: 3.5px solid var(--border);
+  border: 2px solid var(--border);
   padding: 2rem;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 6px 18px var(--shadow);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px var(--shadow);
 }
-.screen-content p { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
+.screen-content p { font-size: 1.2rem; font-weight: bold; color: var(--text-sub); margin-bottom: 1rem; }
 
-.screen-title    { font-size: 1.9rem; font-weight: 900; line-height: 1.3; }
+.screen-title    { font-size: 1.8rem; font-weight: bold; line-height: 1.3; color: var(--text); font-family: 'Gowun Batang', serif; }
 .screen-subtitle { font-size: 1.15rem; color: var(--text-sub); margin-top: 0.35rem; }
 
 /* ==================================================
@@ -238,15 +271,15 @@ button { font-family: inherit; cursor: pointer; }
   margin-bottom: 2.2rem;
   background: var(--card);
   padding: 1.4rem 1.8rem;
-  border: 3.5px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 6px 16px var(--shadow);
+  border: 2px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px var(--shadow);
 }
 .welcome-avatar-wrapper { position: relative; cursor: pointer; flex-shrink: 0; }
 .pulse-ring {
   position: absolute; inset: -5px;
   border-radius: 50%;
-  border: 3px solid var(--border);
+  border: 2px solid var(--border);
   animation: pulse 2.4s infinite;
   pointer-events: none;
 }
@@ -261,15 +294,20 @@ button { font-family: inherit; cursor: pointer; }
   width: 100%;
   padding: 1.8rem 2rem;
   background: var(--card);
-  border: 3.5px solid var(--border);
-  border-radius: var(--radius-xl);
-  box-shadow: 0 5px 0 var(--border);
-  transition: all 0.15s;
+  border: 2px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 6px 0 var(--border);
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.menu-card:hover  { background: var(--card-hover); transform: translateY(-3px); box-shadow: 0 8px 0 var(--border); }
-.menu-card:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--border); }
+.menu-card:hover  { 
+  background: var(--card-hover); 
+  transform: translateY(-4px); 
+  box-shadow: 0 10px 0 var(--border);
+  border-color: var(--border);
+}
+.menu-card:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--border); }
 .menu-icon { font-size: 2.5rem; margin-bottom: 0.7rem; }
-.menu-text { font-size: 1.4rem; font-weight: 900; margin-bottom: 0.4rem; }
+.menu-text { font-size: 1.4rem; font-weight: bold; color: var(--text); font-family: 'Gowun Batang', serif; margin-bottom: 0.4rem; }
 .menu-desc { font-size: 1rem; color: var(--text-sub); line-height: 1.5; }
 
 /* ==================================================
