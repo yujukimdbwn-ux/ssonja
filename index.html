@@ -982,56 +982,7 @@
       return;
     }
 
-    // 3단계: 실시간 앱 검색 (iTunes Search API)
-    aiLoading.classList.remove('hidden');
-    translateBtn.disabled = true;
-    translateBtn.textContent = '📱 앱 정보 찾는 중...';
-    resultCard.classList.add('hidden');
-    updateTranslatorCharComment('실시간 앱 정보를 찾아보고 있어요...');
-    
-    try {
-      const app = await searchAppStore(query);
-      if (app) {
-        aiLoading.classList.add('hidden');
-        translateBtn.disabled = false;
-        translateBtn.textContent = '🔍 번역하기';
-
-        const plainText = `할머니, 할아버지! 그 활동은 ${app.name} 앱에서 하실 수 있어요! 휴대폰에서 이 모양을 가진 앱을 찾거나 다운로드해서 들어가시면 됩니다, 할머니 할아버지!`;
-        const bubbleHtml = `
-          <div style="display: flex; flex-direction: column; gap: 8px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <img src="${app.iconUrl}" style="width: 45px; height: 45px; border-radius: 10px; flex-shrink: 0;" alt="${app.name}">
-              <span style="font-size: 14px; line-height: 1.4; text-align: left;">할머니, 할아버지! 그 활동은 <strong>${app.name}</strong> 앱에서 하실 수 있어요!</span>
-            </div>
-            <button class="action-btn" style="background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: bold; padding: 6px 12px; font-size: 13px; cursor: pointer; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.15);" onclick="triggerAppStoreGuide('${app.name.replace(/'/g, "\\'")}')">가이드 보기 📖</button>
-          </div>
-        `;
-
-        resultWord.textContent = `"${query}"`;
-        resultMean.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <img src="${app.iconUrl}" style="width: 55px; height: 55px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);" alt="${app.name}">
-            <strong style="font-size: 18px; color: #2c3e50;">${app.name}</strong>
-          </div>
-          <div style="font-size: 16px; line-height: 1.5; color: #34495e; margin-bottom: 15px;">${plainText}</div>
-          <button class="action-btn" style="background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: bold; padding: 8px 18px; font-size: 14px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15);" onclick="triggerAppStoreGuide('${app.name.replace(/'/g, "\\'")}')">가이드 보기 📖</button>
-        `;
-        lastTranslatedText = plainText;
-        sourceBadge.textContent = '📱 앱 정보 연동';
-        sourceBadge.className = 'result-badge badge-csv';
-        csvRefBox.classList.add('hidden');
-
-        popResult(resultCard);
-        updateTranslatorCharComment('실시간 앱 정보를 찾았어요! 🔊 버튼을 눌러 들어보세요!');
-        triggerAvatarBubble(bubbleHtml, 8000);
-        speakGuideline(plainText);
-        return;
-      }
-    } catch (appErr) {
-      console.error('iTunes Search API 오류:', appErr);
-    }
-
-    // 4단계: Gemini AI API 호출 (App Store 검색 실패 시 기존 AI 번역 호출)
+    // 3단계: Gemini AI API 호출
     aiLoading.classList.remove('hidden');
     translateBtn.disabled = true;
     translateBtn.textContent = '🤖 AI에게 물어보는 중...';
@@ -1638,9 +1589,15 @@
     let matchedCategory = null;
     let matchedNoun = '';
 
+    // 0. 앱 설치/다운로드 마켓 검사 (사용법 가이드에서 앱 설치 검색 시 Play Store 등 매칭)
+    if (nq.includes('설치') || nq.includes('다운로드') || nq.includes('다운') || nq.includes('깔기') || nq.includes('깔고') || nq.includes('스토어') || nq.includes('플레이스토어') || nq.includes('앱스토어')) {
+      matchedCategory = 'app_store';
+      matchedNoun = '앱 설치';
+    }
+
     // 1. 중고 거래 (당근마켓, 번개장터) 우선 검사 + "팔기", "교환" 키워드 포함 시 최우선 연동
-    if (nq.includes('당근마켓') || nq.includes('번개장터') || nq.includes('중고나라') || nq.includes('중고거래') || 
-        nq.includes('팔기') || nq.includes('교환') || nq.includes('물물교환') || nq.includes('판매') || nq.includes('처분')) {
+    if (!matchedCategory && (nq.includes('당근마켓') || nq.includes('번개장터') || nq.includes('중고나라') || nq.includes('중고거래') || 
+        nq.includes('팔기') || nq.includes('교환') || nq.includes('물물교환') || nq.includes('판매') || nq.includes('처분'))) {
       matchedCategory = 'secondhand';
       matchedNoun = nq.includes('당근마켓') ? '당근마켓' : (nq.includes('번개장터') ? '번개장터' : '중고거래/교환/팔기');
     }
@@ -1783,7 +1740,35 @@
     let title = '';
     let apps = [];
 
-    if (category === 'secondhand') {
+    if (category === 'app_store') {
+      title = `📱 앱을 다운로드/설치하고 싶으신가요?`;
+      apps = [
+        {
+          name: '구글 Play 스토어',
+          icon: '🤖',
+          desc: '안드로이드 휴대폰(갤럭시 등)에서 다양한 앱을 검색하여 다운로드하고 설치하는 공식 앱 장터예요.',
+          action: '구글 플레이스토어'
+        },
+        {
+          name: '애플 App Store',
+          icon: '🍎',
+          desc: '아이폰에서 다양한 어플리케이션을 검색하여 안전하게 설치하고 업데이트하는 공식 앱 장터예요.',
+          action: '애플 앱스토어'
+        },
+        {
+          name: '원스토어 (ONE store)',
+          icon: '🔴',
+          desc: '통신 3사와 네이버가 함께 만든 국산 앱 마켓으로 다양한 게임과 앱을 받을 수 있어요.',
+          action: '원스토어'
+        },
+        {
+          name: '갤럭시 스토어',
+          icon: '🌌',
+          desc: '삼성 갤럭시 폰 사용자들을 위한 삼성 공식 앱 다운로드 마켓이에요.',
+          action: '갤럭시 스토어'
+        }
+      ];
+    } else if (category === 'secondhand') {
       title = `🤝 중고 거래 마켓 "${noun}"을 원하시나요?`;
       apps = [
         {
