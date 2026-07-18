@@ -366,10 +366,6 @@
           <h3>비서 캐릭터</h3>
           <div class="radio-buttons-container" style="flex-wrap: wrap; gap: 8px;">
             <label class="custom-radio-option">
-              <input type="radio" name="avatar-gender" value="none" checked onchange="changeAvatarGender('none')">
-              <span class="radio-custom-box">👩‍💼 기본 비서</span>
-            </label>
-            <label class="custom-radio-option">
               <input type="radio" name="avatar-gender" value="grandson" onchange="changeAvatarGender('grandson')">
               <span class="radio-custom-box">👦 든든한 손자</span>
             </label>
@@ -3074,9 +3070,8 @@
     avatarGender = gender;
     localStorage.setItem('avatar-gender', gender);
     
-    let imgSrc = '무제97_20260718181051 (1).png';
+    let imgSrc = 'boy_ssonja.png';
     if (gender === 'granddaughter') imgSrc = 'girl_ssonyeo.png';
-    else if (gender === 'grandson') imgSrc = 'boy_ssonja.png';
 
     const avatars = document.querySelectorAll('.avatar-img');
     avatars.forEach(img => {
@@ -3086,12 +3081,9 @@
     if (gender === 'granddaughter') {
       triggerAvatarBubble('상냥한 손녀로 변경 완료!');
       speakGuideline('안녕하세요! 저는 할머니, 할아버지를 돕는 손녀 비서예요.');
-    } else if (gender === 'grandson') {
+    } else {
       triggerAvatarBubble('든든한 손자로 변경 완료!');
       speakGuideline('안녕하세요! 저는 할머니, 할아버지를 돕는 손자 비서예요.');
-    } else {
-      triggerAvatarBubble('기본 비서로 변경 완료!');
-      speakGuideline('안녕하세요! 저는 할머니, 할아버지를 돕는 비서예요.');
     }
   }
 
@@ -3119,16 +3111,11 @@
       if (v) utt.voice = v;
       utt.pitch = 1.5; // 높은 여아 목소리
       utt.rate  = 0.9;
-    } else if (avatarGender === 'grandson') {
+    } else {
       let v = koVoices.find(v => /minjun|male|man|injoon/i.test(v.name));
       if (!v && koVoices.length) v = koVoices.find(vv => !/yuna|sun.hi|heami/i.test(vv.name)) || koVoices[0];
       if (v) utt.voice = v;
       utt.pitch = 1.2; // 약간 낮은 남아 목소리
-      utt.rate  = 0.9;
-    } else {
-      // 기본 비서 - 중성 어린아이 목소리
-      if (koVoices.length) utt.voice = koVoices[0];
-      utt.pitch = 1.35; // 중성적인 중간 톤의 아동 피치
       utt.rate  = 0.9;
     }
     const avatars = document.querySelectorAll('.avatar-img-wrapper');
