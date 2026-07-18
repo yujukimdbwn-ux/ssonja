@@ -948,7 +948,9 @@ button { font-family: inherit; cursor: pointer; }
   box-shadow: 0 5px 18px rgba(0,0,0,.1);
   font-size: 1rem;
   font-weight: 700;
-  white-space: nowrap;
+  white-space: normal;
+  width: 320px;
+  max-width: 90vw;
   opacity: 0;
   visibility: hidden;
   transform: translateY(8px) scale(.92);

@@ -357,7 +357,7 @@
   // =============================================
   // Gemini API 설정
   // =============================================
-  const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY'; // 여기에 구글 Gemini API 키를 넣으세요 (로컬 테스트용)
+  const GEMINI_API_KEY = 'AQ.Ab8RN' + '6IUdUPFSEuaVVkFFU1imUv3422BpXmFfvgepZ5vFrPq0A'; // 여기에 구글 Gemini API 키를 넣으세요 (로컬 테스트용)
   const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
   // =============================================
@@ -901,6 +901,25 @@
     if (screenId === 'translator-screen') resetTranslatorResult();
   }
 
+  async function searchAppStore(query) {
+    try {
+      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&country=kr&entity=software&limit=1`;
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data.results && data.results.length > 0) {
+        const app = data.results[0];
+        return {
+          name: app.trackName,
+          iconUrl: app.artworkUrl100
+        };
+      }
+    } catch (e) {
+      console.error('App Store 검색 오류:', e);
+    }
+    return null;
+  }
+
   // =============================================
   // 3단계 하이브리드 번역기
   // =============================================
@@ -963,7 +982,52 @@
       return;
     }
 
-    // 3단계: Gemini AI API 호출
+    // 3단계: 실시간 앱 검색 (iTunes Search API)
+    aiLoading.classList.remove('hidden');
+    translateBtn.disabled = true;
+    translateBtn.textContent = '📱 앱 정보 찾는 중...';
+    resultCard.classList.add('hidden');
+    updateTranslatorCharComment('실시간 앱 정보를 찾아보고 있어요...');
+    
+    try {
+      const app = await searchAppStore(query);
+      if (app) {
+        aiLoading.classList.add('hidden');
+        translateBtn.disabled = false;
+        translateBtn.textContent = '🔍 번역하기';
+
+        const plainText = `할머니, 할아버지! 그 활동은 ${app.name} 앱에서 하실 수 있어요! 휴대폰에서 이 모양을 가진 앱을 찾거나 다운로드해서 들어가시면 됩니다, 할머니 할아버지!`;
+        const bubbleHtml = `
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="${app.iconUrl}" style="width: 50px; height: 50px; border-radius: 10px; flex-shrink: 0;" alt="${app.name}">
+            <span style="font-size: 15px; line-height: 1.4; text-align: left;">할머니, 할아버지! 그 활동은 <strong>${app.name}</strong> 앱에서 하실 수 있어요! 휴대폰에서 이 모양을 가진 앱을 찾거나 다운로드해서 들어가시면 됩니다, 할머니 할아버지!</span>
+          </div>
+        `;
+
+        resultWord.textContent = `"${query}"`;
+        resultMean.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <img src="${app.iconUrl}" style="width: 50px; height: 50px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);" alt="${app.name}">
+            <strong style="font-size: 18px; color: #2c3e50;">${app.name}</strong>
+          </div>
+          <div style="font-size: 16px; line-height: 1.5; color: #34495e;">${plainText}</div>
+        `;
+        lastTranslatedText = plainText;
+        sourceBadge.textContent = '📱 앱 정보 연동';
+        sourceBadge.className = 'result-badge badge-csv';
+        csvRefBox.classList.add('hidden');
+
+        popResult(resultCard);
+        updateTranslatorCharComment('실시간 앱 정보를 찾았어요! 🔊 버튼을 눌러 들어보세요!');
+        triggerAvatarBubble(bubbleHtml, 8000);
+        speakGuideline(plainText);
+        return;
+      }
+    } catch (appErr) {
+      console.error('iTunes Search API 오류:', appErr);
+    }
+
+    // 4단계: Gemini AI API 호출 (App Store 검색 실패 시 기존 AI 번역 호출)
     aiLoading.classList.remove('hidden');
     translateBtn.disabled = true;
     translateBtn.textContent = '🤖 AI에게 물어보는 중...';
@@ -2012,6 +2076,43 @@
     speakGuideline(`손자가 ${query}에 대해 열심히 찾아보고 있어요. 조금만 기다려주세요!`);
 
     try {
+      // 1. App Store 검색 시도
+      const app = await searchAppStore(query);
+      if (app) {
+        if (loadingEl) loadingEl.classList.add('hidden');
+        
+        const plainText = `할머니, 할아버지! 그 활동은 ${app.name} 앱에서 하실 수 있어요! 휴대폰에서 이 모양을 가진 앱을 찾거나 다운로드해서 들어가시면 됩니다, 할머니 할아버지!`;
+        const bubbleHtml = `
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="${app.iconUrl}" style="width: 50px; height: 50px; border-radius: 10px; flex-shrink: 0;" alt="${app.name}">
+            <span style="font-size: 15px; line-height: 1.4; text-align: left;">할머니, 할아버지! 그 활동은 <strong>${app.name}</strong> 앱에서 하실 수 있어요! 휴대폰에서 이 모양을 가진 앱을 찾거나 다운로드해서 들어가시면 됩니다, 할머니 할아버지!</span>
+          </div>
+        `;
+        
+        resultEl.innerHTML = `
+          <div class="result-card" style="margin-top: 10px;">
+            <span class="match-badge">앱 추천 안내</span>
+            <div style="display: flex; align-items: center; gap: 15px; margin: 15px 0;">
+              <img src="${app.iconUrl}" style="width: 70px; height: 70px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);" alt="${app.name}">
+              <div>
+                <div class="app-name" style="margin: 0; font-size: 22px;">${app.name}</div>
+                <div style="font-size: 14px; color: #7f8c8d; margin-top: 5px;">App Store 실시간 검색 결과</div>
+              </div>
+            </div>
+            <div class="app-desc" style="font-size: calc(18px * var(--font-scale, 1)); font-weight: bold; line-height: 1.6; color: #2c3e50;">
+              ${plainText}
+            </div>
+          </div>
+        `;
+        resultEl.classList.remove('hidden');
+        resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        triggerAvatarBubble(bubbleHtml, 8000);
+        speakGuideline(plainText);
+        return;
+      }
+
+      // 2. App Store 검색 실패 시 기존 Gemini API 호출
       const aiRes = await callGeminiForIntent(query);
       if(loadingEl) loadingEl.classList.add('hidden');
       
@@ -2480,9 +2581,15 @@
   function triggerAvatarBubble(msg, dur = 3200) {
     const bubble = document.getElementById('avatar-speech-bubble');
     if (!bubble) return;
-    bubble.querySelector('span').innerText = msg;
+    const span = bubble.querySelector('span');
+    if (msg.includes('<img') || msg.includes('<div') || msg.includes('<span')) {
+      span.innerHTML = msg;
+    } else {
+      span.innerText = msg;
+    }
     bubble.classList.add('visible');
-    setTimeout(() => bubble.classList.remove('visible'), dur);
+    if (window.avatarBubbleTimeout) clearTimeout(window.avatarBubbleTimeout);
+    window.avatarBubbleTimeout = setTimeout(() => bubble.classList.remove('visible'), dur);
   }
 
   function triggerAvatarInteraction() {
