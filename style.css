@@ -119,12 +119,12 @@ button { font-family: inherit; cursor: pointer; }
   cursor: pointer;
   display: flex;
   align-items: center;
-  height: 72px;
+  height: 100px;
   user-select: none;
 }
 .logo-img {
   height: 100%;
-  max-width: 260px;
+  max-width: 360px;
   object-fit: contain;
   filter: grayscale(1) brightness(0.2);
   mix-blend-mode: multiply;
