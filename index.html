@@ -876,7 +876,10 @@
       voiceEnabled = savedVoice === 'true';
       document.getElementById('voice-support-toggle').checked = voiceEnabled;
     }
-    const savedGender = localStorage.getItem('avatar-gender') || 'none';
+    let savedGender = localStorage.getItem('avatar-gender');
+    if (!savedGender || savedGender === 'none') {
+      savedGender = Math.random() > 0.5 ? 'grandson' : 'granddaughter';
+    }
     avatarGender = savedGender;
     const radioEl = document.querySelector(`input[name="avatar-gender"][value="${avatarGender}"]`);
     if (radioEl) radioEl.checked = true;
@@ -3073,15 +3076,13 @@
     avatarGender = gender;
     localStorage.setItem('avatar-gender', gender);
     
-    // Update ribbon/tie classes on all avatars
-    const wrappers = document.querySelectorAll('.avatar-img-wrapper');
-    wrappers.forEach(el => {
-      el.classList.remove('gender-girl', 'gender-boy');
-      if (gender === 'granddaughter') {
-        el.classList.add('gender-girl');
-      } else if (gender === 'grandson') {
-        el.classList.add('gender-boy');
-      }
+    let imgSrc = '무제97_20260718181051 (1).png';
+    if (gender === 'granddaughter') imgSrc = 'girl_ssonyeo.png';
+    else if (gender === 'grandson') imgSrc = 'boy_ssonja.png';
+
+    const avatars = document.querySelectorAll('.avatar-img');
+    avatars.forEach(img => {
+      img.src = imgSrc;
     });
 
     if (gender === 'granddaughter') {
