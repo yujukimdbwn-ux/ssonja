@@ -1457,6 +1457,13 @@
     if (!file) return;
     const reader = new FileReader();
     reader.onload = e => {
+      // 1. active step의 이미지 박스를 찾아서 업로드된 사진으로 교체
+      const stepIdx = window.currentActiveStepIndex || 0;
+      const imgContainer = document.getElementById(`guide-image-container-${stepIdx}`);
+      if (imgContainer) {
+        imgContainer.innerHTML = `<img src="${e.target.result}" class="guide-step-image" alt="사용자 업로드 사진">`;
+      }
+      
       showPhotoPreview(e.target.result);
       analyzeImageWithGemini(e.target.result);
     };
@@ -1483,6 +1490,22 @@
     document.getElementById('photo-preview-area').classList.add('hidden');
     document.getElementById('photo-preview-area').innerHTML = '';
     document.getElementById('photo-upload').value = '';
+    // Restore the original step image when photo is cleared
+    const stepIdx = window.currentActiveStepIndex || 0;
+    const imgContainer = document.getElementById(`guide-image-container-${stepIdx}`);
+    if (imgContainer && window.currentGuideData) {
+      const match = window.currentGuideData;
+      const s = match.steps[stepIdx];
+      let imageHtml = '';
+      if (s.image) {
+        imageHtml = `<img src="${s.image}" class="guide-step-image" alt="${s.title}">`;
+      } else if (match.appIconUrl) {
+        imageHtml = `<img src="${match.appIconUrl}" class="guide-step-icon-view" alt="${match.appName}">`;
+      } else {
+        imageHtml = `<div class="guide-step-emoji-fallback">${match.icon || '📱'}</div>`;
+      }
+      imgContainer.innerHTML = imageHtml;
+    }
   }
 
   async function openCamera() {
@@ -1505,6 +1528,14 @@
     canvas.getContext('2d').drawImage(video, 0, 0);
     const imgData = canvas.toDataURL('image/jpeg');
     closeCamera();
+
+    // 1. active step의 이미지 박스를 찾아서 촬영된 사진으로 교체
+    const stepIdx = window.currentActiveStepIndex || 0;
+    const imgContainer = document.getElementById(`guide-image-container-${stepIdx}`);
+    if (imgContainer) {
+      imgContainer.innerHTML = `<img src="${imgData}" class="guide-step-image" alt="사용자 업로드 사진">`;
+    }
+
     showPhotoPreview(imgData);
     analyzeImageWithGemini(imgData);
   }
@@ -2349,6 +2380,8 @@
   let totalGuideSteps = 0;
 
   function renderGuide(match) {
+    window.currentGuideData = match;
+    window.currentActiveStepIndex = 0;
     const resultEl = document.getElementById('guide-result');
     currentGuideStepIndex = 0;
     totalGuideSteps = match.steps.length;
@@ -2361,30 +2394,46 @@
         <div class="app-desc">${match.intro}</div>
         <div class="howto-title">이렇게 따라해 보세요</div>
         <div class="step-list" id="interactive-step-list">
-          ${match.steps.map((s, idx) => `
-            <div class="step-item ${idx !== 0 ? 'hidden-step' : ''}" id="guide-step-item-${idx}" style="flex-direction: column;">
-              <div style="display:flex; gap:14px; width: 100%;">
-                <span class="step-num">${s.num}</span>
-                <span class="step-text" style="flex:1;">
-                  <strong>${s.title}</strong><br>
-                  ${s.desc}
-                </span>
+          ${match.steps.map((s, idx) => {
+            // Determine image container inner HTML
+            let imageHtml = '';
+            if (s.uploadedImage) {
+              imageHtml = `<img src="${s.uploadedImage}" class="guide-step-image" alt="사용자 업로드 사진">`;
+            } else if (s.image) {
+              imageHtml = `<img src="${s.image}" class="guide-step-image" alt="${s.title}">`;
+            } else if (match.appIconUrl) {
+              imageHtml = `<img src="${match.appIconUrl}" class="guide-step-icon-view" alt="${match.appName}">`;
+            } else {
+              imageHtml = `<div class="guide-step-emoji-fallback">${match.icon || '📱'}</div>`;
+            }
+            
+            return `
+              <div class="step-item ${idx !== 0 ? 'hidden-step' : ''}" id="guide-step-item-${idx}" style="flex-direction: column;">
+                <div style="display:flex; gap:14px; width: 100%;">
+                  <span class="step-num">${s.num}</span>
+                  <span class="step-text" style="flex:1;">
+                    <strong>${s.title}</strong><br>
+                    ${s.desc}
+                  </span>
+                </div>
+                
+                <div class="guide-image-container" id="guide-image-container-${idx}">
+                  ${imageHtml}
+                </div>
+                <div class="guide-image-caption" id="guide-image-caption-${idx}">
+                  ${match.appName} - ${s.title}
+                </div>
+                
+                <div class="guide-step-actions">
+                  ${idx < totalGuideSteps - 1 ? 
+                    `<button class="btn-next-step" onclick="nextGuideStep(${idx})">다음 단계로 넘어가기 👉</button>` : 
+                    `<button class="btn-next-step" onclick="alert('모든 단계를 완료했습니다! 참 잘하셨어요 👏');">완료하기 ✨</button>`
+                  }
+                  <button class="btn-help-step" onclick="helpGuideStep(${idx})">이해가 안 돼서 모르겠수 😥</button>
+                </div>
               </div>
-              
-              <div class="guide-image-placeholder">
-                [실제 앱/기기 화면 이미지 플레이스홀더 박스]<br>
-                (${match.appName} - ${s.title})
-              </div>
-              
-              <div class="guide-step-actions">
-                ${idx < totalGuideSteps - 1 ? 
-                  `<button class="btn-next-step" onclick="nextGuideStep(${idx})">다음 단계로 넘어가기 👉</button>` : 
-                  `<button class="btn-next-step" onclick="alert('모든 단계를 완료했습니다! 참 잘하셨어요 👏');">완료하기 ✨</button>`
-                }
-                <button class="btn-help-step" onclick="helpGuideStep()">이해가 안 돼서 모르겠수 😥</button>
-              </div>
-            </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
         ${match.warnings && match.warnings.length > 0 ? `
         <div class="cautions-box">
@@ -2410,13 +2459,15 @@
     if (currentEl) currentEl.classList.add('hidden-step');
     if (nextEl) {
       nextEl.classList.remove('hidden-step');
+      window.currentActiveStepIndex = currentIndex + 1; // Update current step pointer
       triggerAvatarBubble(`${currentIndex + 2}단계입니다. 천천히 따라와 주세요!`);
       speakGuideline(`다음 단계입니다.`);
       nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
 
-  window.helpGuideStep = function() {
+  window.helpGuideStep = function(stepIndex) {
+    window.currentActiveStepIndex = stepIndex; // Guarantee sync
     triggerAvatarBubble('할머니, 할아버지! 막히신 화면을 휴대폰으로 찰칵 캡처하시거나, 다른 폰으로 이 화면을 사진 찍어서 아래 버튼으로 올려주세요! 손주가 어디를 눌러야 하는지 짚어드릴게요!');
     speakGuideline('막히신 화면을 사진으로 찍어서 올려주시면, 제가 어디를 눌러야 할지 짚어드릴게요!');
     
@@ -2469,68 +2520,7 @@
     return JSON.parse(text.trim());
   }
 
-  // =============================================
-  // 사진 / 카메라
-  // =============================================
-  function handlePhotoUpload(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      const area = document.getElementById('photo-preview-area');
-      area.classList.remove('hidden');
-      area.innerHTML = `
-        <div class="photo-preview-wrapper">
-          <img src="${e.target.result}" alt="업로드된 사진" class="photo-preview-img">
-          <p class="photo-preview-label">✅ 사진이 추가되었어요! AI 분석 기능은 준비 중이에요.</p>
-          <button class="action-btn" onclick="clearPhoto()" style="margin-top:0.8rem;padding:0.6rem 1rem;">🗑️ 사진 지우기</button>
-        </div>`;
-      speakGuideline('사진이 추가되었어요, 할머니, 할아버지! 감사합니다.');
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function clearPhoto() {
-    document.getElementById('photo-preview-area').classList.add('hidden');
-    document.getElementById('photo-preview-area').innerHTML = '';
-    document.getElementById('photo-upload').value = '';
-  }
-
-  async function openCamera() {
-    const area  = document.getElementById('camera-area');
-    const video = document.getElementById('camera-video');
-    try {
-      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-      video.srcObject = cameraStream;
-      area.classList.remove('hidden');
-      speakGuideline('카메라가 켜졌어요. 촬영 버튼을 눌러 사진을 찍어보세요.');
-    } catch (e) {
-      alert('할머니, 할아버지! 카메라 사용 권한이 필요해요. 브라우저에서 카메라 허용을 눌러주세요.');
-    }
-  }
-
-  function capturePhoto() {
-    const video  = document.getElementById('camera-video');
-    const canvas = document.getElementById('camera-canvas');
-    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    const imgData = canvas.toDataURL('image/jpeg');
-    closeCamera();
-    const area = document.getElementById('photo-preview-area');
-    area.classList.remove('hidden');
-    area.innerHTML = `
-      <div class="photo-preview-wrapper">
-        <img src="${imgData}" alt="촬영된 사진" class="photo-preview-img">
-        <p class="photo-preview-label">📸 사진이 촬영되었어요! AI 분석 기능은 준비 중이에요.</p>
-        <button class="action-btn" onclick="clearPhoto()" style="margin-top:0.8rem;padding:0.6rem 1rem;">🗑️ 사진 지우기</button>
-      </div>`;
-    speakGuideline('사진이 촬영되었어요!');
-  }
-
-  function closeCamera() {
-    if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
-    document.getElementById('camera-area').classList.add('hidden');
-  }
+  // (중복 방지를 위해 하단 사진/카메라 기능 블록 정리)
 
   // =============================================
   // 보이스피싱 검출기

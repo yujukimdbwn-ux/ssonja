@@ -1295,22 +1295,52 @@ button { font-family: inherit; cursor: pointer; }
 .mini-check { width: 26px; height: 26px; border-radius: 50%; background: #5cb85c; margin: auto; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 700; }
 
 /* Interactive Guide System Styles */
-.guide-image-placeholder {
+.guide-image-container {
   width: 100%;
-  max-width: 300px;
-  height: 200px;
-  background: #f0f0f0;
-  border: 2px dashed #ccc;
-  border-radius: 12px;
-  margin: 16px auto;
+  max-width: 320px;
+  height: 240px;
+  background: #fdfaf6;
+  border: 2px dashed var(--border);
+  border-radius: 15px;
+  margin: 16px auto 8px auto;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #888;
-  font-size: calc(14px * var(--font-scale, 1));
-  font-weight: 600;
   text-align: center;
-  padding: 20px;
+  padding: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  overflow: hidden;
+  position: relative;
+}
+.guide-step-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
+.guide-step-icon-view {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 24px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  animation: floatAppIcon 3s ease-in-out infinite;
+}
+@keyframes floatAppIcon {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.guide-step-emoji-fallback {
+  font-size: 80px;
+  animation: floatAppIcon 3s ease-in-out infinite;
+}
+.guide-image-caption {
+  font-size: calc(14px * var(--font-scale, 1));
+  font-weight: 800;
+  color: #7f8c8d;
+  margin-top: 6px;
+  text-align: center;
 }
 .guide-step-actions {
   display: flex;
