@@ -2609,8 +2609,7 @@
 
   async function callGeminiPhishingAPI(text, base64Data) {
     const promptText = `
-너는 할머니, 할아버지를 보이스피싱 범죄로부터 지켜내는 다정한 인공지능 손주이자 보안 전문가야.
-할아버지가 입력하신 텍스트 내용 혹은 이미지 속 문구(문자 메시지, 메신저 대화 캡처 등)가 아래의 보이스피싱 유형들과 얼마나 유사하고 일치하는지 분석해서 위험도 백분율(0% ~ 100%)과 친절한 설명을 평가해야 해.
+너는 다정한 보안 전문가 손주야. 입력된 문장을 분석해서 오직 두 가지 정보만 [점수] | [한 줄 요약] 형태로 출력해 줘. 다른 인사말이나 부연 설명은 절대 하지 말고 포맷을 엄격하게 지켜줘. 예시: 95 | 내 딸을 데리고 있다는 전형적인 납치 빙자형 사기 문장입니다.
 
 [보이스피싱 학습 데이터]
 1. 기관 및 수사기관 사칭형 (공포심 조성)
@@ -2632,15 +2631,6 @@
   - 010-으로 시작되는 개인번호에서 온 과태료 고지서 링크
   - 부고, 결혼, 백일잔치 위장 링크 (지인 폰 해킹 가능성 경고 필요)
 
-[분석 및 출력 규칙]
-- 위험도 확률(percentage): 0에서 100 사이의 정수로 평가해 줘. 위의 유형들과 완벽히 일치하거나 매우 흡사한 전형적인 보이스피싱 수법이면 70%~100%로 지정하고, 약간 미심쩍으면 10%~70%, 전혀 상관없는 일상 메시지나 안전한 내용이면 0%~10%로 지정해 줘.
-- 어르신 눈높이에 맞는 다정한 말투("할머니, 할아버지!"를 문장에 꼭 사용)로 설명해 줘.
-- 반드시 아래 JSON 형식으로만 답변해야 해:
-{
-  "percentage": 85,
-  "reason": "설명"
-}
-
 입력된 내용: "${text || ''}"
 `;
 
@@ -2660,8 +2650,7 @@
       body: JSON.stringify({
         contents: [{ parts: parts }],
         generationConfig: {
-          temperature: 0.2,
-          responseMimeType: "application/json"
+          temperature: 0.2
         }
       })
     });
@@ -2669,7 +2658,7 @@
     if (!response.ok) throw new Error('Gemini Phishing API Failed');
     const data = await response.json();
     const resultText = data.candidates[0].content.parts[0].text;
-    return JSON.parse(resultText.trim());
+    return resultText;
   }
 
   async function doPhishingCheck() {
@@ -2692,11 +2681,39 @@
     triggerAvatarBubble("손주가 꼼꼼히 읽어보는 중이에요...");
     speakGuideline("손주가 꼼꼼히 읽어보는 중이에요. 잠시만 기다려주세요, 할머니 할아버지!");
     
+    let pct = 50;
+    let reason = "확인이 필요한 문장입니다.";
+
     try {
-      const res = await callGeminiPhishingAPI(text, base64Data);
-      const pct = res.percentage;
-      const reason = res.reason;
+      const resText = await callGeminiPhishingAPI(text, base64Data);
+      console.log('Gemini Phishing response:', resText);
       
+      // Parse the format: [점수] | [한 줄 요약]
+      if (resText && resText.includes('|')) {
+        const parts = resText.split('|');
+        const parsedPct = parseInt(parts[0].replace(/[^0-9]/g, ''), 10);
+        if (!isNaN(parsedPct)) {
+          pct = parsedPct;
+        }
+        reason = parts.slice(1).join('|').trim();
+      } else {
+        // Fallback extraction by finding any number
+        const numMatch = resText.match(/\d+/);
+        if (numMatch) {
+          pct = parseInt(numMatch[0], 10);
+        }
+        reason = resText.trim();
+      }
+    } catch (err) {
+      console.error('Phishing check error, using fallback:', err);
+      pct = 50;
+      reason = "API 연결 오류로 인하여 임시 진단합니다. 확인이 필요한 문장입니다.";
+    }
+
+    try {
+      // Clamp percentage between 0 and 100
+      pct = Math.min(100, Math.max(0, pct));
+
       let lvl = '';
       let badge = '';
       let color = '';
