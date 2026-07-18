@@ -1344,7 +1344,7 @@
   }
 
   async function callGeminiForGuide(query) {
-    const prompt = \`사용자가 "\${query}"의 사용법을 물어봤어. 이 앱이나 기기(또는 작업)의 사용법을 어르신들이 이해하기 쉽게 4~5단계로 설명해줘.
+    const prompt = `사용자가 "${query}"의 사용법을 물어봤어. 이 앱이나 기기(또는 작업)의 사용법을 어르신들이 이해하기 쉽게 4~5단계로 설명해줘.
 반드시 아래 JSON 형식으로만 응답해. 다른 말은 절대 쓰지 마.
 {
   "appName": "앱이나 작업 이름",
@@ -1354,7 +1354,7 @@
     { "num": 1, "title": "단계별 짧은 행동 지시", "desc": "상세 설명", "emoji": "이 단계에 어울리는 직관적인 이모지 1개" }
   ],
   "warnings": ["주의사항 1", "주의사항 2"]
-}\`;
+}`;
 
     const body = {
       contents: [{ parts: [{ text: prompt }] }],
