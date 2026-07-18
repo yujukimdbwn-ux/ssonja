@@ -272,9 +272,18 @@
       <button class="back-btn" onclick="showScreen('home-screen')">⬅️ 뒤로 가기</button>
       <h1 class="screen-title">🚨 보이스피싱 검출기</h1>
       <div class="screen-content">
-        <p>받으신 수상한 문자나 메신저 대화 내용을 입력해서 검사해 보세요.</p>
+        <p>받으신 수상한 문자나 메신저 대화 내용을 입력하거나 사진을 찍어 올려보세요.</p>
         <textarea class="app-textarea" id="phishing-input" placeholder="문자 내용 또는 대화 전문을 붙여넣기 해 주세요."></textarea>
-        <button class="action-btn color-alert" onclick="doPhishingCheck()">🔍 피싱 위험도 검사</button>
+        
+        <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px;">
+          <button class="action-btn" onclick="document.getElementById('phishing-photo-upload').click()" style="flex: 1; background: #34495e; border-radius: 20px; font-weight: bold;">📁 사진 올리기</button>
+          <button class="action-btn" onclick="openPhishingCamera()" style="flex: 1; background: #2c3e50; border-radius: 20px; font-weight: bold;">📸 카메라 촬영</button>
+        </div>
+        <input type="file" id="phishing-photo-upload" accept="image/*" style="display:none;" onchange="handlePhishingPhotoUpload(this)">
+        
+        <div id="phishing-photo-preview-area" class="hidden" style="text-align: center; margin: 15px 0;"></div>
+        
+        <button class="action-btn color-alert" id="phishing-check-btn" onclick="doPhishingCheck()">🔍 피싱 위험도 검사</button>
         <div id="phishing-result" class="phishing-result hidden"></div>
       </div>
     </section>
@@ -1532,15 +1541,21 @@
     const imgData = canvas.toDataURL('image/jpeg');
     closeCamera();
 
-    // 1. active step의 이미지 박스를 찾아서 촬영된 사진으로 교체
-    const stepIdx = window.currentActiveStepIndex || 0;
-    const imgContainer = document.getElementById(`guide-image-container-${stepIdx}`);
-    if (imgContainer) {
-      imgContainer.innerHTML = `<img src="${imgData}" class="guide-step-image" alt="사용자 업로드 사진">`;
-    }
+    if (window.cameraContext === 'phishing') {
+      if (typeof window.handlePhishingCapturedPhoto === 'function') {
+        window.handlePhishingCapturedPhoto(imgData);
+      }
+    } else {
+      // 1. active step의 이미지 박스를 찾아서 촬영된 사진으로 교체
+      const stepIdx = window.currentActiveStepIndex || 0;
+      const imgContainer = document.getElementById(`guide-image-container-${stepIdx}`);
+      if (imgContainer) {
+        imgContainer.innerHTML = `<img src="${imgData}" class="guide-step-image" alt="사용자 업로드 사진">`;
+      }
 
-    showPhotoPreview(imgData);
-    analyzeImageWithGemini(imgData);
+      showPhotoPreview(imgData);
+      analyzeImageWithGemini(imgData);
+    }
   }
 
   function closeCamera() {
@@ -2542,29 +2557,196 @@
   // =============================================
   // 보이스피싱 검출기
   // =============================================
-  const PHISHING_KW = ['계좌','이체','송금','비밀번호','인증번호','검찰','경찰','세금환급',
-    '당첨','무료','클릭','링크','대출','신용카드','카드정보','주민번호','개인정보','긴급','납부'];
+  window.phishingUploadedImageBase64 = null;
 
-  function doPhishingCheck() {
-    const text = (document.getElementById('phishing-input').value || '').trim();
-    if (!text) { alert('할머니, 할아버지! 검사할 문자 내용을 먼저 입력해 주세요.'); return; }
-    const found = PHISHING_KW.filter(kw => text.includes(kw));
-    const lvl = found.length === 0 ? 'safe' : found.length <= 2 ? 'caution' : 'danger';
-    const resultEl = document.getElementById('phishing-result');
-    let html = '';
-    if (lvl === 'safe') {
-      html = `<div class="phishing-safe">✅ <strong>비교적 안전해 보여요.</strong><br>그래도 모르는 링크는 절대 누르지 마세요!</div>`;
-      speakGuideline('검사 결과, 비교적 안전해 보여요. 하지만 모르는 링크는 절대 누르지 마세요.');
-    } else if (lvl === 'caution') {
-      html = `<div class="phishing-caution">⚠️ <strong>주의가 필요해요!</strong><br>위험 단어: ${found.join(', ')}<br>자녀나 가족과 꼭 상의해 보세요.</div>`;
-      speakGuideline('주의가 필요해요! 자녀나 가족과 먼저 상의해 보세요.');
-    } else {
-      html = `<div class="phishing-danger">🚨 <strong>매우 위험한 문자예요! 절대 응하지 마세요!</strong><br>위험 단어: ${found.join(', ')}<br>즉시 112 또는 자녀에게 연락하세요!</div>`;
-      speakGuideline('매우 위험한 문자예요! 절대 응하지 마시고 112에 신고하거나 자녀에게 연락하세요!');
+  async function callGeminiPhishingAPI(text, base64Data) {
+    const promptText = `
+너는 할머니, 할아버지를 보이스피싱 범죄로부터 지켜내는 다정한 인공지능 손주이자 보안 전문가야.
+할아버지가 입력하신 텍스트 내용 혹은 이미지 속 문구(문자 메시지, 메신저 대화 캡처 등)가 아래의 보이스피싱 유형들과 얼마나 유사하고 일치하는지 분석해서 위험도 백분율(0% ~ 100%)과 친절한 설명을 평가해야 해.
+
+[보이스피싱 학습 데이터]
+1. 기관 및 수사기관 사칭형 (공포심 조성)
+  - "○○○ 고객님 명의의 대포통장이 범죄에 연루되었습니다."
+  - "50여 명의 피해자가 발생한 집단 고소 사건입니다. 협조하지 않으시면 구속 수사 및 소환장을 발부하겠습니다."
+  - "금융감독원(또는 검찰)에서 자금 안전 조치를 위해 지정된 안전 계좌로 예금을 이체하셔야 합니다."
+2. 대출 빙자형 (저금리 대환대출 유도)
+  - "정부지원 대환대출 특별지원 대상자로 선정되셨습니다."
+  - "기존 대출을 먼저 상환해야만 저금리 대출이 가능합니다. 지정해 드리는 계좌로 상환금을 입금해 주세요."
+  - "거래 기록이 남지 않도록 기존 대출금을 현금으로 전달해 주셔야 합니다."
+3. 스미싱 / 지인 사칭형 (일상 속 호기심 및 택배 유도)
+  - "[국제발신] 해외직구 물품 통관 대기 중, 관세 납부 확인 링크 클릭"
+  - "[택배사] 주문하신 물품 배송 완료 및 수령 확인 요망 [URL 주소]"
+  - "엄마(또는 아들)인데 폰 액정이 깨져서 수리 맡겼어. 급하게 문화상품권(또는 기프티콘) 좀 사서 핀번호만 사진으로 보내줘."
+  - "○○○님, 모바일 건강검진 미수령 환급금 확인하세요."
+  - 예약하지도 않은 건강검진문자 링크 클릭 유도
+  - 연금 수당 지급 완료 링크 (실제인지 통장 내역 확인, 국민연금 홈페이지 문의 혹은 고객센터 전화하기 안내 필요)
+  - 카드사 문자 (이것 또한 카드사 공식 고객센터 전화, 카드사 앱에서 확인하기 안내 필요)
+  - 010-으로 시작되는 개인번호에서 온 과태료 고지서 링크
+  - 부고, 결혼, 백일잔치 위장 링크 (지인 폰 해킹 가능성 경고 필요)
+
+[분석 및 출력 규칙]
+- 위험도 확률(percentage): 0에서 100 사이의 정수로 평가해 줘. 위의 유형들과 완벽히 일치하거나 매우 흡사한 전형적인 보이스피싱 수법이면 70%~100%로 지정하고, 약간 미심쩍으면 10%~70%, 전혀 상관없는 일상 메시지나 안전한 내용이면 0%~10%로 지정해 줘.
+- 어르신 눈높이에 맞는 다정한 말투("할머니, 할아버지!"를 문장에 꼭 사용)로 설명해 줘.
+- 반드시 아래 JSON 형식으로만 답변해야 해:
+{
+  "percentage": 85,
+  "reason": "설명"
+}
+
+입력된 내용: "${text || ''}"
+`;
+
+    const parts = [{ text: promptText }];
+    if (base64Data) {
+      parts.push({
+        inline_data: {
+          mime_type: "image/jpeg",
+          data: base64Data.split(',')[1]
+        }
+      });
     }
-    resultEl.innerHTML = html;
-    resultEl.classList.remove('hidden');
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: parts }],
+        generationConfig: {
+          temperature: 0.2,
+          responseMimeType: "application/json"
+        }
+      })
+    });
+
+    if (!response.ok) throw new Error('Gemini Phishing API Failed');
+    const data = await response.json();
+    const resultText = data.candidates[0].content.parts[0].text;
+    return JSON.parse(resultText.trim());
   }
+
+  async function doPhishingCheck() {
+    const text = (document.getElementById('phishing-input').value || '').trim();
+    const base64Data = window.phishingUploadedImageBase64;
+    
+    if (!text && !base64Data) {
+      alert('할머니, 할아버지! 검사할 문자 내용을 입력하시거나 대화 캡처 사진을 올려주세요.');
+      return;
+    }
+
+    const checkBtn = document.getElementById('phishing-check-btn');
+    const resultEl = document.getElementById('phishing-result');
+    
+    checkBtn.disabled = true;
+    checkBtn.textContent = '🧐 분석 중...';
+    resultEl.classList.add('hidden');
+    
+    try {
+      const res = await callGeminiPhishingAPI(text, base64Data);
+      const pct = res.percentage;
+      const reason = res.reason;
+      
+      let lvl = '';
+      let badge = '';
+      let color = '';
+      let border = '';
+      let bg = '';
+      
+      if (pct <= 10) {
+        lvl = 'safe';
+        badge = '안심하세요! 😊';
+        color = '#1a5631';
+        border = '#2ecc71';
+        bg = '#eafaf1';
+      } else if (pct <= 40) {
+        lvl = 'caution';
+        badge = '조심하세요! ⚠️';
+        color = '#784212';
+        border = '#f39c12';
+        bg = '#fef9e7';
+      } else if (pct <= 70) {
+        lvl = 'warning';
+        badge = '확인해보세요! 🔍';
+        color = '#b05300';
+        border = '#e67e22';
+        bg = '#fdf2e9';
+      } else {
+        lvl = 'danger';
+        badge = '🚨 위험! 경찰에 신고하세요!';
+        color = '#922b21';
+        border = '#e74c3c';
+        bg = '#fdedec';
+      }
+
+      let reportBtnHtml = '';
+      if (pct >= 70) {
+        reportBtnHtml = `
+          <a href="tel:112" class="action-btn" style="background:#e74c3c; color:white; font-size:18px; font-weight:bold; display:block; text-align:center; padding:12px; border-radius:30px; text-decoration:none; margin-top:15px; box-shadow:0 4px 10px rgba(231,76,60,0.3); animation: pulseAlert 1.5s infinite;">🚨 112 경찰 신고 전화 연결</a>
+        `;
+      }
+
+      resultEl.innerHTML = `
+        <div style="border: 3px solid ${border}; background: ${bg}; color: ${color}; padding: 1.3rem 1.5rem; border-radius: 15px; margin-top: 15px;">
+          <div style="font-size: 22px; font-weight: 900; margin-bottom: 8px;">${badge} (위험도: ${pct}%)</div>
+          <div style="font-size: 16px; font-weight: 500; line-height: 1.6;">${reason}</div>
+          ${reportBtnHtml}
+        </div>
+      `;
+      resultEl.classList.remove('hidden');
+      speakGuideline(`검사 위험도는 ${pct}퍼센트입니다. ${reason}`);
+      triggerAvatarBubble(`검사 위험도 ${pct}%입니다!`);
+    } catch (err) {
+      console.error(err);
+      alert('보이스피싱 검사 도중 오류가 발생했습니다. 다시 시도해 주세요.');
+    } finally {
+      checkBtn.disabled = false;
+      checkBtn.textContent = '🔍 피싱 위험도 검사';
+    }
+  }
+
+  window.handlePhishingPhotoUpload = function(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      window.phishingUploadedImageBase64 = e.target.result;
+      const previewArea = document.getElementById('phishing-photo-preview-area');
+      previewArea.innerHTML = `
+        <div style="position: relative; display: inline-block;">
+          <img src="${e.target.result}" style="max-height: 200px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+          <button onclick="clearPhishingPhoto()" style="position: absolute; top: -10px; right: -10px; background: #e74c3c; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-weight: bold;">X</button>
+        </div>
+      `;
+      previewArea.classList.remove('hidden');
+      speakGuideline('사진이 추가되었습니다. 피싱 위험도 검사 버튼을 눌러보세요.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.openPhishingCamera = function() {
+    window.cameraContext = 'phishing';
+    openCamera();
+  };
+
+  window.handlePhishingCapturedPhoto = function(imgData) {
+    window.phishingUploadedImageBase64 = imgData;
+    const previewArea = document.getElementById('phishing-photo-preview-area');
+    previewArea.innerHTML = `
+      <div style="position: relative; display: inline-block;">
+        <img src="${imgData}" style="max-height: 200px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+        <button onclick="clearPhishingPhoto()" style="position: absolute; top: -10px; right: -10px; background: #e74c3c; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-weight: bold;">X</button>
+      </div>
+    `;
+    previewArea.classList.remove('hidden');
+    speakGuideline('사진이 촬영되었습니다. 피싱 위험도 검사 버튼을 눌러보세요.');
+  };
+
+  window.clearPhishingPhoto = function() {
+    window.phishingUploadedImageBase64 = null;
+    const previewArea = document.getElementById('phishing-photo-preview-area');
+    previewArea.innerHTML = '';
+    previewArea.classList.add('hidden');
+    document.getElementById('phishing-photo-upload').value = '';
+  };
 
   // =============================================
   // STT - 음성 인식

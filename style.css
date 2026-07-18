@@ -1455,3 +1455,9 @@ button { font-family: inherit; cursor: pointer; }
   background: #6f5439;
 }
 
+@keyframes pulseAlert {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); box-shadow: 0 4px 15px rgba(231,76,60,0.5); }
+  100% { transform: scale(1); }
+}
+
