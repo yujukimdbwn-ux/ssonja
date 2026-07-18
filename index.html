@@ -2085,7 +2085,7 @@
         </p>
         <div class="recommend-grid">
           ${apps.map((app) => `
-            <div class="recommend-app-item" onclick="triggerRecommendAppGuide('${app.name}', '${app.action}')">
+            <div class="recommend-app-item" onclick="triggerAppStoreGuide('${app.name.replace(/'/g, "\\'")}')">
               <div class="recommend-app-icon">${app.icon}</div>
               <div class="recommend-app-info">
                 <div class="recommend-app-name">${app.name}</div>
@@ -2122,7 +2122,8 @@
       '배달': ['배달', '배민', '배달의민족', '요기요', '쿠팡이츠', 'baemin'],
       '유튜브': ['유튜브', 'youtube', '동영상', '영상', '뮤직'],
       '지도': ['지도', '네이버 지도', '네이버지도', '카카오맵', '길찾기', 'map'],
-      '기차': ['코레일', 'korail', '기차', '승차권', '열차', 'ktx', 'srt']
+      '기차': ['코레일', 'korail', '기차', '승차권', '열차', 'ktx', 'srt'],
+      '중고거래': ['당근마켓', '번개장터', '중고나라', '중고거래', 'secondhand', '당근', '번개']
     };
 
     outer: for (const [key, keywords] of Object.entries(mapping)) {
