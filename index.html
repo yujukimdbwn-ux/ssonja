@@ -909,10 +909,13 @@
       const data = await res.json();
       if (data.results && data.results.length > 0) {
         const app = data.results[0];
-        return {
+        const result = {
           name: app.trackName,
-          iconUrl: app.artworkUrl100
+          iconUrl: app.artworkUrl100,
+          screenshotUrls: app.screenshotUrls || []
         };
+        window.latestSearchedApp = result;
+        return result;
       }
     } catch (e) {
       console.error('App Store 검색 오류:', e);
@@ -2169,7 +2172,7 @@
     doGuideSearch(searchKey);
   };
 
-  window.triggerAppStoreGuide = function(appName) {
+  window.triggerAppStoreGuide = async function(appName, appIconUrl) {
     const lowerName = appName.toLowerCase();
     let matchedKey = null;
 
@@ -2195,9 +2198,21 @@
       }
     }
 
+    // 1. Fetch App Info for screenshots
+    let appInfo = null;
+    if (window.latestSearchedApp && window.latestSearchedApp.name.toLowerCase().includes(lowerName)) {
+      appInfo = window.latestSearchedApp;
+    } else {
+      appInfo = await searchAppStore(appName);
+    }
+
     if (matchedKey && guideDatabase[matchedKey]) {
+      const guideData = JSON.parse(JSON.stringify(guideDatabase[matchedKey])); // deep copy
+      guideData.appIconUrl = appIconUrl || (appInfo ? appInfo.iconUrl : null) || guideData.appIconUrl || null;
+      guideData.screenshotUrls = (appInfo ? appInfo.screenshotUrls : []) || [];
+      
       showScreen('dictionary-screen');
-      renderGuide(guideDatabase[matchedKey]);
+      renderGuide(guideData);
       speakGuideline(`${appName}의 사용법 가이드를 준비해 드렸어요. 차근차근 따라 해 보세요!`);
       triggerAvatarBubble(`${appName} 가이드를 열어드렸어요!`);
       return;
@@ -2207,6 +2222,8 @@
     const dynamicGuide = {
       appName: appName,
       icon: '📱',
+      appIconUrl: appIconUrl || (appInfo ? appInfo.iconUrl : null) || null,
+      screenshotUrls: (appInfo ? appInfo.screenshotUrls : []) || [],
       intro: `실시간 검색된 "${appName}" 앱의 기본 사용법 안내입니다.`,
       steps: [
         {
@@ -2307,7 +2324,7 @@
               <img src="${app.iconUrl}" style="width: 45px; height: 45px; border-radius: 10px; flex-shrink: 0;" alt="${app.name}">
               <span style="font-size: 14px; line-height: 1.4; text-align: left;">할머니, 할아버지! 그 활동은 <strong>${app.name}</strong> 앱에서 하실 수 있어요!</span>
             </div>
-            <button class="action-btn" style="background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: bold; padding: 6px 12px; font-size: 13px; cursor: pointer; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.15);" onclick="triggerAppStoreGuide('${app.name.replace(/'/g, "\\'")}')">가이드 보기 📖</button>
+            <button class="action-btn" style="background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: bold; padding: 6px 12px; font-size: 13px; cursor: pointer; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.15);" onclick="triggerAppStoreGuide('${app.name.replace(/'/g, "\\'")}', '${app.iconUrl}')">가이드 보기 📖</button>
           </div>
         `;
         
@@ -2324,7 +2341,7 @@
             <div class="app-desc" style="font-size: calc(18px * var(--font-scale, 1)); font-weight: bold; line-height: 1.6; color: #2c3e50; margin-bottom: 15px;">
               ${plainText}
             </div>
-            <button class="action-btn" style="background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: bold; padding: 10px 22px; font-size: 15px; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.15);" onclick="triggerAppStoreGuide('${app.name.replace(/'/g, "\\'")}')">가이드 보기 📖</button>
+            <button class="action-btn" style="background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: bold; padding: 10px 22px; font-size: 15px; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.15);" onclick="triggerAppStoreGuide('${app.name.replace(/'/g, "\\'")}', '${app.iconUrl}')">가이드 보기 📖</button>
           </div>
         `;
         resultEl.classList.remove('hidden');
