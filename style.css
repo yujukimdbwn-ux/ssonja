@@ -958,7 +958,7 @@ button { font-family: inherit; cursor: pointer; }
   pointer-events: none;
   z-index: 1000;
 }
-.avatar-speech-bubble.visible { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+.avatar-speech-bubble.visible { opacity: 1; visibility: visible; transform: translateY(0) scale(1); pointer-events: auto; }
 .bubble-arrow {
   position: absolute;
   bottom: -14px; right: 44px;

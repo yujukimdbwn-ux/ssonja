@@ -998,19 +998,23 @@
 
         const plainText = `할머니, 할아버지! 그 활동은 ${app.name} 앱에서 하실 수 있어요! 휴대폰에서 이 모양을 가진 앱을 찾거나 다운로드해서 들어가시면 됩니다, 할머니 할아버지!`;
         const bubbleHtml = `
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <img src="${app.iconUrl}" style="width: 50px; height: 50px; border-radius: 10px; flex-shrink: 0;" alt="${app.name}">
-            <span style="font-size: 15px; line-height: 1.4; text-align: left;">할머니, 할아버지! 그 활동은 <strong>${app.name}</strong> 앱에서 하실 수 있어요! 휴대폰에서 이 모양을 가진 앱을 찾거나 다운로드해서 들어가시면 됩니다, 할머니 할아버지!</span>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <img src="${app.iconUrl}" style="width: 45px; height: 45px; border-radius: 10px; flex-shrink: 0;" alt="${app.name}">
+              <span style="font-size: 14px; line-height: 1.4; text-align: left;">할머니, 할아버지! 그 활동은 <strong>${app.name}</strong> 앱에서 하실 수 있어요!</span>
+            </div>
+            <button class="action-btn" style="background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: bold; padding: 6px 12px; font-size: 13px; cursor: pointer; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.15);" onclick="triggerAppStoreGuide('${app.name.replace(/'/g, "\\'")}')">가이드 보기 📖</button>
           </div>
         `;
 
         resultWord.textContent = `"${query}"`;
         resultMean.innerHTML = `
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <img src="${app.iconUrl}" style="width: 50px; height: 50px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);" alt="${app.name}">
+            <img src="${app.iconUrl}" style="width: 55px; height: 55px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);" alt="${app.name}">
             <strong style="font-size: 18px; color: #2c3e50;">${app.name}</strong>
           </div>
-          <div style="font-size: 16px; line-height: 1.5; color: #34495e;">${plainText}</div>
+          <div style="font-size: 16px; line-height: 1.5; color: #34495e; margin-bottom: 15px;">${plainText}</div>
+          <button class="action-btn" style="background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: bold; padding: 8px 18px; font-size: 14px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15);" onclick="triggerAppStoreGuide('${app.name.replace(/'/g, "\\'")}')">가이드 보기 📖</button>
         `;
         lastTranslatedText = plainText;
         sourceBadge.textContent = '📱 앱 정보 연동';
@@ -1362,6 +1366,105 @@
             "배달 주소가 정확한지 꼭 확인하세요!",
             "최소 주문 금액이 있을 수 있어요.",
             "배달비가 추가돼요. 결제 전 총액을 확인하세요."
+        ]
+    },
+    "유튜브": {
+        "icon": "📺",
+        "appName": "유튜브 / 동영상 시청 앱",
+        "intro": "스마트폰으로 재미있는 음악이나 영상을 찾아보는 방법이에요!",
+        "steps": [
+            {
+                "num": 1,
+                "title": "\"유튜브\" 앱을 열어주세요",
+                "desc": "빨간색 사각형 안에 흰색 재생 버튼이 그려진 앱을 찾아 누르세요.",
+                "mockupHTML": "<div class=\"hifi-mockup theme-youtube\" style=\"background:#fff;\"><div class=\"hifi-notch\"></div><div class=\"hifi-topbar\"><span class=\"title\">YouTube</span><span class=\"icons\">🔍👤</span></div><div class=\"hifi-content\" style=\"display:flex; justify-content:center; align-items:center; height:200px;\"><div class=\"hifi-target\" style=\"font-size:60px; color:#ff0000;\">▶️</div></div><div class=\"finger-cursor\" style=\"top:120px;left:100px;\">👆</div></div>"
+            },
+            {
+                "num": 2,
+                "title": "화면 맨 위의 돋보기(검색) 모양을 누르세요",
+                "desc": "오른쪽 위에 있는 돋보기 그림을 눌러 검색창을 여세요.",
+                "mockupHTML": "<div class=\"hifi-mockup theme-youtube\" style=\"background:#fff;\"><div class=\"hifi-notch\"></div><div class=\"hifi-topbar\"><span class=\"title\">YouTube</span><span class=\"icons\"><span class=\"hifi-target-sm\">🔍</span>👤</span></div><div class=\"finger-cursor\" style=\"top:45px;left:160px;\">👆</div></div>"
+            },
+            {
+                "num": 3,
+                "title": "보고 싶은 노래나 이름을 입력하고 검색을 누르세요",
+                "desc": "\"임영웅 노래\", \"뉴스\" 등 원하는 말을 입력한 뒤 돋보기를 누르세요.",
+                "mockupHTML": "<div class=\"hifi-mockup theme-youtube\" style=\"background:#fff;\"><div class=\"hifi-notch\"></div><div class=\"hifi-content\"><div class=\"hifi-input-bar hifi-target\"><div class=\"hifi-input-field\">임영웅 노래</div></div></div><div class=\"finger-cursor\" style=\"top:70px;left:100px;\">👆</div></div>"
+            },
+            {
+                "num": 4,
+                "title": "보고 싶은 동영상을 선택해 터치하세요",
+                "desc": "나타난 화면 목록에서 마음에 드는 그림이나 제목을 누르면 재생됩니다.",
+                "mockupHTML": "<div class=\"hifi-mockup theme-youtube\" style=\"background:#fff;\"><div class=\"hifi-notch\"></div><div class=\"hifi-content\"><div class=\"hifi-card hifi-target\"><div style=\"background:#000; height:100px; display:flex; justify-content:center; align-items:center; color:#fff;\">▶️ 임영웅 메들리</div></div></div><div class=\"finger-cursor\" style=\"top:120px;left:100px;\">👆</div></div>"
+            }
+        ],
+        "warnings": [
+            "데이터 요금이 많이 나올 수 있으니 꼭 와이파이(Wi-Fi)를 켜고 이용하세요.",
+            "화면 아래의 '구독'이나 '좋아요'는 돈이 나가는 것이 아니니 안심하고 누르셔도 돼요!"
+        ]
+    },
+    "지도": {
+        "icon": "🗺️",
+        "appName": "네이버 지도 / 카카오맵",
+        "intro": "가고 싶은 길이나 목적지 위치를 쉽게 찾는 방법이에요!",
+        "steps": [
+            {
+                "num": 1,
+                "title": "\"네이버 지도\" 앱을 누르세요",
+                "desc": "초록색 나침반 바늘 모양이 그려진 아이콘을 눌러 지도를 실행하세요.",
+                "mockupHTML": "<div class=\"hifi-mockup theme-map\" style=\"background:#fff;\"><div class=\"hifi-notch\"></div><div class=\"hifi-content\" style=\"display:flex; justify-content:center; align-items:center; height:200px;\"><div class=\"hifi-target\" style=\"font-size:60px;\">🧭</div></div><div class=\"finger-cursor\" style=\"top:120px;left:100px;\">👆</div></div>"
+            },
+            {
+                "num": 2,
+                "title": "맨 위의 검색창을 눌러 목적지를 적으세요",
+                "desc": "\"한양대학교\", \"서울역\" 등 원하시는 장소 이름을 입력하세요.",
+                "mockupHTML": "<div class=\"hifi-mockup theme-map\" style=\"background:#fff;\"><div class=\"hifi-notch\"></div><div class=\"hifi-content\"><div class=\"hifi-input-bar hifi-target\"><div class=\"hifi-input-field\">서울역</div></div></div><div class=\"finger-cursor\" style=\"top:70px;left:100px;\">👆</div></div>"
+            },
+            {
+                "num": 3,
+                "title": "길찾기 버튼을 누르고 이동 방법을 고르세요",
+                "desc": "오른쪽 아래 파란색 [길찾기] 버튼을 누르고 버스, 기차 혹은 도보 아이콘을 선택하세요.",
+                "mockupHTML": "<div class=\"hifi-mockup theme-map\" style=\"background:#fff;\"><div class=\"hifi-notch\"></div><div class=\"hifi-content\" style=\"display:flex; justify-content:flex-end; align-items:flex-end; height:180px;\"><button class=\"hifi-target\" style=\"background:#3498db; color:white; border:none; padding:10px 20px; border-radius:30px; font-weight:bold;\">길찾기 🧭</button></div><div class=\"finger-cursor\" style=\"top:160px;left:120px;\">👆</div></div>"
+            }
+        ],
+        "warnings": [
+            "길을 걸으며 지도를 보면 위험하오니 안전한 곳에 멈춰서 길을 확인하세요.",
+            "휴대폰 위치(GPS) 기능을 켜두시면 나의 현재 위치가 지도에 나타나 더 편합니다."
+        ]
+    },
+    "기차": {
+        "icon": "🚄",
+        "appName": "코레일톡 (KTX / 기차 예매)",
+        "intro": "스마트폰으로 기차표를 편리하게 예매하는 방법이에요!",
+        "steps": [
+            {
+                "num": 1,
+                "title": "\"코레일톡\" 앱을 실행하세요",
+                "desc": "기차가 달리는 듯한 모양의 하늘색 앱을 터치하여 켭니다.",
+                "mockupHTML": "<div class=\"hifi-mockup theme-korail\" style=\"background:#fff;\"><div class=\"hifi-notch\"></div><div class=\"hifi-content\" style=\"display:flex; justify-content:center; align-items:center; height:200px;\"><div class=\"hifi-target\" style=\"font-size:60px;\">🚄</div></div><div class=\"finger-cursor\" style=\"top:120px;left:100px;\">👆</div></div>"
+            },
+            {
+                "num": 2,
+                "title": "출발지와 목적지, 그리고 날짜를 고르세요",
+                "desc": "[출발] 서울, [도착] 부산 등 버튼을 누르고 타고자 하는 날짜를 고릅니다.",
+                "mockupHTML": "<div class=\"hifi-mockup theme-korail\" style=\"background:#fff;\"><div class=\"hifi-notch\"></div><div class=\"hifi-content\"><div style=\"display:flex; justify-content:space-around; margin-top:20px;\"><button class=\"hifi-target\" style=\"padding:10px;\">출발: 서울</button><button style=\"padding:10px;\">도착: 부산</button></div></div><div class=\"finger-cursor\" style=\"top:70px;left:60px;\">👆</div></div>"
+            },
+            {
+                "num": 3,
+                "title": "[열차 조회하기]를 누르고 시간대를 고르세요",
+                "desc": "목록에서 타고자 하는 시간대의 열차 옆 [예매] 버튼을 누릅니다.",
+                "mockupHTML": "<div class=\"hifi-mockup theme-korail\" style=\"background:#fff;\"><div class=\"hifi-notch\"></div><div class=\"hifi-content\"><div class=\"hifi-list-item\" style=\"display:flex; justify-content:space-between; padding:10px;\"><span>KTX 101열차</span><button class=\"hifi-target\" style=\"background:#2ecc71; color:white; border:none; padding:5px 10px; border-radius:5px;\">예매</button></div></div><div class=\"finger-cursor\" style=\"top:60px;left:150px;\">👆</div></div>"
+            },
+            {
+                "num": 4,
+                "title": "개인 정보를 입력하거나 로그인하여 결제하세요",
+                "desc": "안내에 따라 신용카드 번호 등을 입력하여 표를 구입하면 예매가 끝납니다.",
+                "mockupHTML": "<div class=\"hifi-mockup theme-korail\" style=\"background:#fff;\"><div class=\"hifi-notch\"></div><div class=\"hifi-content\" style=\"display:flex; justify-content:center; align-items:center; height:200px;\"><button class=\"hifi-target\" style=\"background:#34495e; color:white; border:none; padding:10px 20px; border-radius:5px;\">카드결제하기</button></div><div class=\"finger-cursor\" style=\"top:110px;left:100px;\">👆</div></div>"
+            }
+        ],
+        "warnings": [
+            "기차 타기 최소 10분 전에는 역에 도착하여 타는 곳을 확인하세요.",
+            "예매한 승차권은 앱 내의 '승차권 확인' 메뉴에서 언제든지 보실 수 있습니다."
         ]
     }
 };
@@ -2021,6 +2124,76 @@
     doGuideSearch(searchKey);
   };
 
+  window.triggerAppStoreGuide = function(appName) {
+    const lowerName = appName.toLowerCase();
+    let matchedKey = null;
+
+    const mapping = {
+      '키오스크': ['키오스크', 'kiosk', '주문기', '무인기'],
+      '등본': ['등본', '주민등록', '초본', '증명서', '정부24', '정부 24', 'government'],
+      'atm': ['atm', '에이티엠', '은행', '출금', '입금', '송금', '이체'],
+      '식당': ['식당', '예약', '테이블링', '캐치테이블', '웨이팅'],
+      '카카오': ['카카오', '카톡', 'kakao', '메시지', '채팅'],
+      '배달': ['배달', '배민', '배달의민족', '요기요', '쿠팡이츠', 'baemin'],
+      '유튜브': ['유튜브', 'youtube', '동영상', '영상', '뮤직'],
+      '지도': ['지도', '네이버 지도', '네이버지도', '카카오맵', '길찾기', 'map'],
+      '기차': ['코레일', 'korail', '기차', '승차권', '열차', 'ktx', 'srt']
+    };
+
+    outer: for (const [key, keywords] of Object.entries(mapping)) {
+      for (const kw of keywords) {
+        if (lowerName.includes(kw)) {
+          matchedKey = key;
+          break outer;
+        }
+      }
+    }
+
+    if (matchedKey && guideDatabase[matchedKey]) {
+      showScreen('dictionary-screen');
+      renderGuide(guideDatabase[matchedKey]);
+      speakGuideline(`${appName}의 사용법 가이드를 준비해 드렸어요. 차근차근 따라 해 보세요!`);
+      triggerAvatarBubble(`${appName} 가이드를 열어드렸어요!`);
+      return;
+    }
+
+    // Dynamic 3-step guide fallback template for generic Apps
+    const dynamicGuide = {
+      appName: appName,
+      icon: '📱',
+      intro: `실시간 검색된 "${appName}" 앱의 기본 사용법 안내입니다.`,
+      steps: [
+        {
+          num: 1,
+          title: "스마트폰에서 앱 실행하기",
+          desc: `스마트폰 화면에서 [${appName}] 아이콘을 찾아서 가볍게 터치하여 실행해 주세요.`,
+          mockupHTML: `<div class="hifi-mockup theme-kakao" style="background:#fff;"><div class="hifi-notch"></div><div class="hifi-topbar"><span class="title">${appName}</span></div><div class="hifi-content" style="display:flex; justify-content:center; align-items:center; height:200px;"><div style="text-align:center; font-size:40px;">📱</div></div><div class="finger-cursor" style="top:120px;left:100px;">👆</div></div>`
+        },
+        {
+          num: 2,
+          title: "시작하기 또는 로그인",
+          desc: "화면에 [시작하기] 또는 [로그인] 버튼이 보인다면 눌러서 시작을 완료해 주세요.",
+          mockupHTML: `<div class="hifi-mockup theme-kakao" style="background:#fff;"><div class="hifi-notch"></div><div class="hifi-content" style="display:flex; justify-content:center; align-items:center; height:240px; flex-direction:column;"><button style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:bold;">시작하기</button></div><div class="finger-cursor" style="top:120px;left:100px;">👆</div></div>`
+        },
+        {
+          num: 3,
+          title: "돋보기 검색 기능 활용하기",
+          desc: "앱 내부에 있는 돋보기(검색) 모양을 찾아 터치하신 후 원하시는 검색어를 입력하시면 됩니다.",
+          mockupHTML: `<div class="hifi-mockup theme-kakao" style="background:#fff;"><div class="hifi-notch"></div><div class="hifi-topbar"><span class="title">검색</span></div><div class="hifi-content"><div style="border:1.5px solid #ccc; margin:10px; padding:8px; border-radius:15px; text-align:left; color:#999;">🔍 검색어를 입력하세요</div></div><div class="finger-cursor" style="top:75px;left:100px;">👆</div></div>`
+        }
+      ],
+      warnings: [
+        "처음 앱을 시작할 때 권한 허용 동의를 묻는 확인창이 나오면 꼭 [허용]을 눌러주셔야 정상 동작해요.",
+        "혹시 복잡하거나 모르는 화면이 나오면 우측 하단의 [쏜자] 캐릭터를 언제든지 탭하여 물어보세요!"
+      ]
+    };
+
+    showScreen('dictionary-screen');
+    renderGuide(dynamicGuide);
+    speakGuideline(`${appName}의 사용법 안내입니다. 스마트폰에서 차근차근 따라 해 보세요!`);
+    triggerAvatarBubble(`${appName} 가이드를 준비해 드렸어요!`);
+  };
+
 
   async function doGuideSearch(override) {
     const query = override || document.getElementById('guide-input')?.value || '';
@@ -2083,9 +2256,12 @@
         
         const plainText = `할머니, 할아버지! 그 활동은 ${app.name} 앱에서 하실 수 있어요! 휴대폰에서 이 모양을 가진 앱을 찾거나 다운로드해서 들어가시면 됩니다, 할머니 할아버지!`;
         const bubbleHtml = `
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <img src="${app.iconUrl}" style="width: 50px; height: 50px; border-radius: 10px; flex-shrink: 0;" alt="${app.name}">
-            <span style="font-size: 15px; line-height: 1.4; text-align: left;">할머니, 할아버지! 그 활동은 <strong>${app.name}</strong> 앱에서 하실 수 있어요! 휴대폰에서 이 모양을 가진 앱을 찾거나 다운로드해서 들어가시면 됩니다, 할머니 할아버지!</span>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <img src="${app.iconUrl}" style="width: 45px; height: 45px; border-radius: 10px; flex-shrink: 0;" alt="${app.name}">
+              <span style="font-size: 14px; line-height: 1.4; text-align: left;">할머니, 할아버지! 그 활동은 <strong>${app.name}</strong> 앱에서 하실 수 있어요!</span>
+            </div>
+            <button class="action-btn" style="background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: bold; padding: 6px 12px; font-size: 13px; cursor: pointer; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.15);" onclick="triggerAppStoreGuide('${app.name.replace(/'/g, "\\'")}')">가이드 보기 📖</button>
           </div>
         `;
         
@@ -2099,9 +2275,10 @@
                 <div style="font-size: 14px; color: #7f8c8d; margin-top: 5px;">App Store 실시간 검색 결과</div>
               </div>
             </div>
-            <div class="app-desc" style="font-size: calc(18px * var(--font-scale, 1)); font-weight: bold; line-height: 1.6; color: #2c3e50;">
+            <div class="app-desc" style="font-size: calc(18px * var(--font-scale, 1)); font-weight: bold; line-height: 1.6; color: #2c3e50; margin-bottom: 15px;">
               ${plainText}
             </div>
+            <button class="action-btn" style="background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: bold; padding: 10px 22px; font-size: 15px; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.15);" onclick="triggerAppStoreGuide('${app.name.replace(/'/g, "\\'")}')">가이드 보기 📖</button>
           </div>
         `;
         resultEl.classList.remove('hidden');
