@@ -1420,6 +1420,239 @@
     doGuideSearch(kw);
   }
 
+  // =============================================
+  // 대용량 분류 키워드 데이터셋 (스포츠 70개, 음식 320개, 일반 상품 140개, 음악 40개)
+  // =============================================
+  const sportsKeywords = [
+    '축구', '야구', '농구', '배구', '골프', '테니스', '탁구', '배드민턴', '수영', '육상', '양궁', '사격', '태권도', '유도', '레슬링', '펜싱', '승마', '요트', '조정', '카누', '사이클', '체조', '역도', '복싱', '핸드볼', '하키', '아이스하키', '피겨', '피겨스케이팅', '쇼트트랙', '스피드스케이팅', '스키', '스노보드', '봅슬레이', '스켈레톤', '루지', '컬링', '당구', '볼링', '스쿼시', '라켓볼', '비치배구', '미식축구', '럭비', '크리켓', '소프트볼', '카바디', '세팍타크로', '클라이밍', '등산', '마라톤', '트라이애슬론', '근대5종', '윈드서핑', '스쿠버', '스쿠버다이빙', '서핑', '모터스포츠', '카레이싱', 'e스포츠', '바둑', '체스', '장기', '댄스스포츠', '보디빌딩', '족구', '피구', '게이트볼', '파크골프', '스포츠', '중계', '올림픽', '월드컵', '아시안게임'
+  ];
+
+  const foodKeywords = [
+    '치킨', '닭강정', '통닭', '삼겹살', '목살', '돼지갈비', '소갈비', '불고기', '갈비찜', '닭갈비', '제육볶음', '보쌈', '족발', '오리구이', '육회', '곱창', '대창', '막창', '순대볶음', '껍데기', '닭발', '똥집', '갈매기살', '항정살', '등갈비', '떡갈비', '소시지', '베이컨', '차돌박이', '편육', '도가니', '수육', '소시지볶음',
+    '김치찌개', '된장찌개', '순두부찌개', '부대찌개', '청국장', '비지찌개', '갈비탕', '설렁탕', '곰탕', '삼계탕', '추어탕', '감자탕', '뼈해장국', '순대국', '돼지국밥', '소고기국밥', '콩나물국밥', '해장국', '동태탕', '알탕', '매운탕', '꽃게탕', '어묵탕', '조개탕', '미역국', '무국', '북어국', '육개장', '닭도리탕', '닭볶음탕', '선지국', '내장탕',
+    '비빔밥', '볶음밥', '김밥', '주먹밥', '쌈밥', '돌솥비빔밥', '덮밥', '국수', '칼국수', '수제비', '잔치국수', '비빔국수', '열무국수', '콩국수', '냉면', '물냉면', '비빔냉면', '쫄면', '떡국', '만두국', '회덮밥', '낙지덮밥', '오징어덮밥', '제육덮밥', '하이라이스', '카레라이스', '오므라이스', '누룽지', '죽', '전복죽', '야채죽', '팥죽', '호박죽',
+    '생선구이', '갈치구이', '고등어구이', '조기구이', '삼치구이', '갈치조림', '고등어조림', '코다리조림', '은어구이', '장어구이', '더덕구이', '두부김치', '도토리묵', '잡채', '계란찜', '계란말이', '감자전', '파전', '김치전', '해물파전', '녹두전', '육전', '동그랑땡', '호박전', '간장게장', '양념게장', '새우장', '꼬막무침', '골뱅이무침', '홍어회', '튀김', '순대',
+    '떡볶이', '라볶이', '튀김', '김말이', '오징어튀김', '고구마튀김', '야채튀김', '군만두', '찐만두', '물만두', '어묵', '핫바', '닭꼬치', '소떡소떡', '토스트', '핫도그', '호떡', '붕어빵', '국화빵', '타코야끼', '오코노미야끼', '닭모래집', '먹태', '노가리', '한치', '오징어', '육포', '번데기', '콘치즈',
+    '짜장면', '간짜장', '쟁반짜장', '짬뽕', '우동', '울면', '탕수육', '깐풍기', '유린기', '라조기', '양장피', '팔보채', '고추잡채', '꽃빵', '마파두부', '볶음밥', '중식볶음밥', '마라탕', '마라샹궈', '꿔바로우', '딤섬', '샤오롱바오', '멘보샤', '동파육', '짜장',
+    '초밥', '스시', '사시미', '회', '돈카츠', '돈가스', '치즈돈가스', '치킨카츠', '규동', '가츠동', '사케동', '텐동', '우동', '야끼우동', '메밀소바', '라멘', '돈코츠라멘', '쇼유라멘', '미소라멘', '시오라멘', '타코와사비', '오뎅나베', '야키토리',
+    '피자', '페퍼로니피자', '치즈피자', '콤비네이션피자', '고구마피자', '포테이토피자', '파스타', '토마토파스타', '크림파스타', '로제파스타', '오일파스타', '봉골레', '까르보나라', '라자냐', '리조또', '스테이크', '티본스테이크', '안심스테이크', '등심스테이크', '함박스테이크', '바비큐립', '샐러드', '시저샐러드', '카프레제', '스프', '양송이스프', '콘스프', '마늘빵',
+    '햄버거', '치즈버거', '치킨버거', '감자튀김', '치킨너겟', '샌드위치', '샐러드랩', '타코', '퀘사디아', '브리또', '쌀국수', '팟타이', '분짜', '월남쌈', '카오팟', '푸팟퐁커리', '인도카레', '난', '탄두리치킨',
+    '빵', '식빵', '크루아상', '단팥빵', '소보로빵', '크림빵', '바게트', '샌드위치', '베이글', '머핀', '스콘', '도넛', '꽈배기', '케이크', '치즈케이크', '초코케이크', '생크림케이크', '타르트', '마카롱', '와플', '크로플', '빙수', '팥빙수', '망고빙수', '딸기빙수', '아이스크림', '젤라또', '쿠키', '초콜릿', '사탕', '젤리', '푸딩',
+    '커피', '아메리카노', '카페라떼', '카푸치노', '바닐라라떼', '카라멜마끼아또', '에스프레소', '차', '녹차', '홍차', '보리차', '옥수수수염차', '과일주스', '딸기주스', '망고주스', '오렌지주스', '에이드', '레몬에이드', '자몽에이드', '탄산음료', '콜라', '사이다', '우유', '두유', '요거트', '스무디', '밀크티', '식혜', '수정과',
+    '사과', '바나나', '포도', '딸기', '수박', '참외', '멜론', '복숭아', '자두', '감', '귤', '오렌지', '자몽', '레몬', '라임', '파인애플', '망고', '체리', '블루베리', '토마토', '방울토마토', '오이', '당근', '양파', '마늘', '감자', '고구마', '옥수수', '밤', '호두', '땅콩', '아몬드', '음식', '안주', '야식', '디저트', '간식'
+  ];
+
+  const goodsKeywords = [
+    '스마트폰', '휴대폰', '핸드폰', '전화기', '아이폰', '갤럭시', '컴퓨터', '노트북', '피씨', '모니터', '마우스', '키보드', '카메라', '헤드폰', '이어폰', '에어팟', '버즈', '스피커', '텔레비전', '티비', '냉장고', '세탁기', '건조기', '에어컨', '선풍기', '공기청정기', '청소기', '로봇청소기', '가습기', '제습기', '밥솥', '전자레인지', '오븐', '토스터', '에어프라이어', '믹서기', '커피머신', '정수기', '식기세척기', '비데', '헤어드라이어', '고데기', '안마의자', '침대', '매트리스', '소파', '책상', '의자', '옷장', '이불', '베개', '커튼', '러그', '책장', '화장대', '서랍장', '조명', '스탠드', '시계', '거울', '옷', '상의', '하의', '바지', '청바지', '티셔츠', '와이셔츠', '셔츠', '원피스', '스커트', '자켓', '코트', '패딩', '점퍼', '가디건', '니트', '양말', '속옷', '모자', '장갑', '목도리', '벨트', '넥타이', '운동화', '구두', '슬리퍼', '샌들', '가방', '백팩', '지갑', '안경', '선글라스', '화장품', '스킨', '로션', '크림', '선크림', '쿠션', '립스틱', '향수', '샴푸', '린스', '트리트먼트', '바디워시', '비누', '클렌징', '치약', '칫솔', '면도기', '면도날', '물티슈', '휴지', '롤화장지', '곽티슈', '생리대', '세제', '섬유유연제', '주방세제', '수세미', '고무장갑', '종이컵', '비닐봉지', '쓰레기봉투', '멀티탭', '건전지', '도서', '책', '소설', '만화책', '잡지', '문제집', '필기구', '볼펜', '연필', '노트', '다이어리', '앨범', '완구', '장난감', '블록', '인형', '텐트', '돗자리', '캐리어', '우산', '약', '영양제', '유산균', '마스크', '생필품'
+  ];
+
+  const musicKeywords = [
+    '음악', '노래', '곡', '뮤직', '팝송', '가요', '팝', '클래식', '재즈', '발라드', '댄스곡', '댄스', '트로트', '뽕짝', '힙합', '알앤비', '인디', '인디음악', '밴드', '밴드음악', '뉴에이지', 'ost', '찬송가', 'ccm', '동요', '민요', '판소리', '가곡', '랩', '노래방', '음원', '멜로디', '리듬', '비트', '연주', '피아노', '기타', '드럼', '바이올린', '오케스트라', '라디오', '플레이리스트'
+  ];
+
+  function classifySearchQuery(query) {
+    const nq = normalizeKey(query);
+    
+    // 구매/주문/배달 의도 판별
+    const isBuying = nq.includes('사기') || nq.includes('구매') || nq.includes('구입') || 
+                     nq.includes('쇼핑') || nq.includes('주문') || nq.includes('배달') || 
+                     nq.includes('결제') || nq.includes('주문하기') || nq.includes('배달시키기');
+
+    // 시청/중계 의도 판별
+    const isWatching = nq.includes('보기') || nq.includes('방송') || nq.includes('중계') || 
+                       nq.includes('시청') || nq.includes('라이브') || nq.includes('영상') || 
+                       nq.includes('하이라이트');
+
+    // 듣기/음악재생 의도 판별
+    const isListening = nq.includes('듣기') || nq.includes('틀기') || nq.includes('재생') || 
+                        nq.includes('켜기') || nq.includes('들려줘') || nq.includes('틀어줘') || 
+                        nq.includes('감상');
+
+    let matchedCategory = null;
+    let matchedNoun = '';
+
+    // 1. 음식 키워드 판별
+    for (const food of foodKeywords) {
+      if (nq.includes(normalizeKey(food))) {
+        matchedCategory = 'food';
+        matchedNoun = food;
+        break;
+      }
+    }
+
+    // 2. 일반 상품(물건) 키워드 판별
+    if (!matchedCategory) {
+      for (const good of goodsKeywords) {
+        if (nq.includes(normalizeKey(good))) {
+          matchedCategory = 'goods';
+          matchedNoun = good;
+          break;
+        }
+      }
+    }
+
+    // 3. 스포츠 키워드 판별
+    if (!matchedCategory) {
+      for (const sport of sportsKeywords) {
+        if (nq.includes(normalizeKey(sport))) {
+          matchedCategory = 'sports';
+          matchedNoun = sport;
+          break;
+        }
+      }
+    }
+
+    // 4. 음악 키워드 판별
+    if (!matchedCategory) {
+      for (const music of musicKeywords) {
+        if (nq.includes(normalizeKey(music))) {
+          matchedCategory = 'music';
+          matchedNoun = music;
+          break;
+        }
+      }
+    }
+
+    return { category: matchedCategory, noun: matchedNoun, isBuying, isWatching, isListening };
+  }
+
+  function renderAppRecommendations(category, noun, query) {
+    const resultEl = document.getElementById('guide-result');
+    let title = '';
+    let apps = [];
+
+    if (category === 'food') {
+      title = `🛵 음식 "${noun}" 주문/배달을 원하시나요?`;
+      apps = [
+        {
+          name: '배달의민족',
+          icon: '🛵',
+          desc: '대한민국 대표 배달 앱으로, 다양한 음식을 집 앞으로 배달해 드려요.',
+          action: '배달'
+        },
+        {
+          name: '요기요',
+          icon: '🎁',
+          desc: '다양한 할인 쿠폰 and 혜택이 가득한 배달 앱이에요.',
+          action: '요기요'
+        },
+        {
+          name: '쿠팡이츠',
+          icon: '⚡',
+          desc: '쿠팡에서 만든 빠른 배달 앱으로, 한 번에 한 집만 신속하게 배달해요.',
+          action: '쿠팡이츠'
+        }
+      ];
+    } else if (category === 'goods') {
+      title = `🛍️ 물건 "${noun}" 쇼핑/구매를 원하시나요?`;
+      apps = [
+        {
+          name: '쿠팡',
+          icon: '📦',
+          desc: '오늘 주문하면 내일 아침 바로 도착하는 로켓배송 대표 쇼핑 앱이에요.',
+          action: '쿠팡'
+        },
+        {
+          name: '네이버 쇼핑',
+          icon: '💚',
+          desc: '가장 많은 쇼핑몰 상품 가격을 한눈에 비교하고 네이버페이로 쉽게 구매해요.',
+          action: '네이버 쇼핑'
+        },
+        {
+          name: '11번가',
+          icon: '🔴',
+          desc: '쉽고 빠른 모바일 쇼핑을 제공하는 인터넷 쇼핑몰 앱이에요.',
+          action: '11번가'
+        }
+      ];
+    } else if (category === 'sports') {
+      title = `⚽ 스포츠 경기 "${noun}" 시청/중계를 원하시나요?`;
+      apps = [
+        {
+          name: '유튜브',
+          icon: '📺',
+          desc: '다양한 스포츠 하이라이트 영상 및 무료 중계를 편리하게 시청할 수 있어요.',
+          action: '유튜브'
+        },
+        {
+          name: '쿠팡플레이',
+          icon: '⚽',
+          desc: '축구, 야구 등 실시간 생중계 스포츠 라이브를 볼 수 있어요.',
+          action: '쿠팡플레이'
+        },
+        {
+          name: '네이버 스포츠',
+          icon: '🏟️',
+          desc: '경기 중계일정, 기사 및 경기 하이라이트를 모아서 볼 수 있어요.',
+          action: '네이버 스포츠'
+        }
+      ];
+    } else if (category === 'music') {
+      title = `🎵 음악/노래 "${noun}" 감상/듣기를 원하시나요?`;
+      apps = [
+        {
+          name: '유튜브',
+          icon: '📺',
+          desc: '노래 영상 및 가사가 있는 비디오와 함께 무료로 감상할 수 있어요.',
+          action: '유튜브'
+        },
+        {
+          name: '멜론',
+          icon: '🍈',
+          desc: '국내 최대 음원 보유 음악 앱으로, 실시간 인기 차트 음악을 들을 수 있어요.',
+          action: '멜론'
+        },
+        {
+          name: '스포티파이',
+          icon: '🟢',
+          desc: '전 세계 최다 이용자를 가진 음악 앱으로, 나에게 꼭 맞는 음악을 추천해 줘요.',
+          action: '스포티파이'
+        },
+        {
+          name: '애플뮤직',
+          icon: '🍎',
+          desc: '깔끔한 디자인과 전 세계 음원을 보유한 글로벌 대표 음악 앱이에요.',
+          action: '애플뮤직'
+        }
+      ];
+    }
+
+    if (apps.length === 0) return false;
+
+    // Render recommendation UI
+    resultEl.innerHTML = `
+      <div class="recommend-card">
+        <div class="recommend-title">${title}</div>
+        <p style="font-size: calc(16px * var(--font-scale, 1)); color: #6b5d4e; margin-bottom: 15px; line-height:1.5;">
+          원하시는 활동에 딱 맞는 추천 앱들입니다. 아래 앱 중 하나를 선택하시면 상세 가이드를 열어드릴게요!
+        </p>
+        <div class="recommend-grid">
+          ${apps.map((app) => `
+            <div class="recommend-app-item" onclick="triggerRecommendAppGuide('${app.name}', '${app.action}')">
+              <div class="recommend-app-icon">${app.icon}</div>
+              <div class="recommend-app-info">
+                <div class="recommend-app-name">${app.name}</div>
+                <div class="recommend-app-desc">${app.desc}</div>
+              </div>
+              <button class="recommend-app-btn">가이드 보기 👉</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    resultEl.classList.remove('hidden');
+    resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    speakGuideline(`요청하신 ${noun}에 어울리는 추천 앱들을 모아봤어요! 아래 앱 버튼을 누르시면 사용법을 설명해 드릴게요.`);
+    triggerAvatarBubble(`추천 앱 리스트를 띄워드렸어요!`);
+    return true;
+  }
+
+  window.triggerRecommendAppGuide = function(appName, searchKey) {
+    doGuideSearch(searchKey);
+  };
+
+
   async function doGuideSearch(override) {
     const query = override || document.getElementById('guide-input')?.value || '';
     if (!query.trim()) return;
@@ -1427,6 +1660,17 @@
     const resultEl   = document.getElementById('guide-result');
     const notFoundEl = document.getElementById('guide-not-found');
     const loadingEl  = document.getElementById('guide-loading');
+
+    // 1. 대용량 키워드 분류 및 멀티 앱 추천 검사
+    const classification = classifySearchQuery(query);
+    if (classification.category) {
+      const recommended = renderAppRecommendations(classification.category, classification.noun, query);
+      if (recommended) {
+        notFoundEl.classList.add('hidden');
+        if (loadingEl) loadingEl.classList.add('hidden');
+        return;
+      }
+    }
 
     const keywordMap = {
       '키오스크': ['키오스크', '주문기', '무인기', '무인단말기', '기계 주문', '터치화면'],
