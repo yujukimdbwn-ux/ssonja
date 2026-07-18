@@ -1281,24 +1281,33 @@
       return;
     }
 
-    // AI 동적 가이드 생성 (GenUI)
+    // AI 동적 가이드 생성 및 액션 인텐트(GenUI)
     resultEl.classList.add('hidden');
     notFoundEl.classList.add('hidden');
     if(loadingEl) loadingEl.classList.remove('hidden');
     
-    triggerAvatarBubble(`"${query}" 사용법을 만들고 있어요!`);
-    speakGuideline(`손자가 ${query} 사용법을 열심히 작성 중이에요. 조금만 기다려주세요!`);
+    triggerAvatarBubble(`"${query}"에 대한 도움말을 준비 중이에요!`);
+    speakGuideline(`손자가 ${query}에 대해 열심히 찾아보고 있어요. 조금만 기다려주세요!`);
 
     try {
-      const aiGuide = await callGeminiForGuide(query);
+      const aiRes = await callGeminiForIntent(query);
       if(loadingEl) loadingEl.classList.add('hidden');
-      renderGuide(aiGuide);
+      
+      if (aiRes.type === 'ACTION' && aiRes.action) {
+        triggerAvatarBubble(aiRes.action.message);
+        speakGuideline(aiRes.action.message);
+        setTimeout(() => {
+          window.open(aiRes.action.url, '_blank');
+        }, 3500);
+      } else {
+        renderGuide(aiRes.guide || aiRes);
+      }
     } catch (err) {
-      console.error('Gemini Guide Gen Error:', err);
+      console.error('Gemini Gen Error:', err);
       if(loadingEl) loadingEl.classList.add('hidden');
       notFoundEl.classList.remove('hidden');
-      triggerAvatarBubble('가이드 생성에 실패했어요 ㅠㅠ');
-      speakGuideline('앗, 가이드를 만드는데 문제가 생겼어요. 다른 걸 검색해 보시겠어요?');
+      triggerAvatarBubble('요청을 처리하는데 실패했어요 ㅠㅠ');
+      speakGuideline('앗, 문제가 생겼어요. 다른 걸 검색해 보시겠어요?');
     }
   }
 
@@ -1320,13 +1329,13 @@
         </div>
       </div>`).join('');
 
-    document.getElementById('guide-warnings-list').innerHTML = match.warnings.map(w => `
+    document.getElementById('guide-warnings-list').innerHTML = (match.warnings || []).map(w => `
       <div class="guide-warning-item"><span class="warn-dot">⚠️</span><span>${w}</span></div>`).join('');
 
     resultEl.classList.remove('hidden');
     resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    speakGuideline(`${match.appName} 사용법이에요. ${match.intro}`);
-    triggerAvatarBubble(`${match.icon} 사용법이에요!`);
+    speakGuideline(`${match.appName} 안내해 드릴게요. ${match.intro}`);
+    triggerAvatarBubble(`${match.icon} 안내해 드릴게요!`);
   }
 
   function generateGenericMockup(title, emoji, appName) {
@@ -1343,18 +1352,26 @@
     </div>`;
   }
 
-  async function callGeminiForGuide(query) {
-    const prompt = `사용자가 "${query}"의 사용법을 물어봤어. 이 앱이나 기기(또는 작업)의 사용법을 어르신들이 이해하기 쉽게 4~5단계로 설명해줘.
+  async function callGeminiForIntent(query) {
+    const prompt = `사용자가 "${query}" 라고 요청했어. 이 요청이 '단순 사용법 안내'인지, 아니면 '음악 틀기, 동영상 보기 등 특정 앱이나 사이트로 직접 이동(검색)해 주기를 원하는 행동'인지 판단해.
 반드시 아래 JSON 형식으로만 응답해. 다른 말은 절대 쓰지 마.
 {
-  "appName": "앱이나 작업 이름",
-  "icon": "관련 이모지 1개",
-  "intro": "어르신께 드리는 친절한 한 줄 소개",
-  "steps": [
-    { "num": 1, "title": "단계별 짧은 행동 지시", "desc": "상세 설명", "emoji": "이 단계에 어울리는 직관적인 이모지 1개" }
-  ],
-  "warnings": ["주의사항 1", "주의사항 2"]
-}`;
+  "type": "GUIDE 또는 ACTION",
+  "guide": {
+    "appName": "앱이나 작업 이름",
+    "icon": "관련 이모지 1개",
+    "intro": "어르신께 드리는 친절한 한 줄 소개",
+    "steps": [
+      { "num": 1, "title": "단계별 짧은 행동 지시", "desc": "상세 설명", "emoji": "직관적인 이모지 1개" }
+    ],
+    "warnings": ["주의사항 1", "주의사항 2"]
+  },
+  "action": {
+    "url": "사용자를 이동시킬 모바일 웹 브라우저 URL (예: 유튜브 검색 https://m.youtube.com/results?search_query=검색어)",
+    "message": "어르신께 안내할 친절한 음성 멘트 (예: 유튜브에서 임영웅 노래를 틀어드릴게요!)"
+  }
+}
+주의: type이 GUIDE면 guide 객체를 채우고 action은 null. type이 ACTION이면 action 객체를 채우고 guide는 null로 해.`;
 
     const body = {
       contents: [{ parts: [{ text: prompt }] }],
