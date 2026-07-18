@@ -357,7 +357,7 @@
   // =============================================
   // Gemini API 설정
   // =============================================
-  const GEMINI_API_KEY = ''; // Vercel 환경변수 등 안전한 방식으로 주입하세요.
+  const GEMINI_API_KEY = 'AQ.Ab8RN6IUdUPFSEuaVVkFFU1imUv3422BpXmFfvgepZ5vFrPq0AAQ.Ab8RN6IUdUPFSEuaVVkFFU1imUv3422BpXmFfvgepZ5vFrPq0A'; // Vercel 환경변수 등 안전한 방식으로 주입하세요.
   const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
   // =============================================
@@ -1093,119 +1093,6 @@
             "개인 정보가 담긴 서류이니 다운로드 후 다른 사람에게 함부로 보내지 마세요!"
         ]
     },
-
-  // =============================================
-  // 사진 및 카메라 (멀티모달 Gemini 연동)
-  // =============================================
-  function handlePhotoUpload(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      showPhotoPreview(e.target.result);
-      analyzeImageWithGemini(e.target.result);
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function showPhotoPreview(base64Data) {
-    const area = document.getElementById('photo-preview-area');
-    area.classList.remove('hidden');
-    area.innerHTML = `
-      <div class="photo-preview-wrapper" style="text-align: center;">
-        <img src="${base64Data}" alt="업로드된 사진" class="photo-preview-img" style="max-height: 250px; border-radius: 8px;">
-        <p id="photo-analysis-status" class="photo-preview-label" style="font-weight: bold; margin-top: 10px; color: #4a90d9;">
-          손자가 열심히 화면을 분석하고 있어요... 🧐
-        </p>
-        <button class="action-btn" onclick="clearPhoto()" style="margin-top:0.8rem;padding:0.6rem 1rem;">🗑️ 사진 지우기</button>
-        <div id="photo-analysis-result" style="margin-top: 15px; padding: 15px; background: #fdf9f2; border-radius: 8px; border: 1px solid #f0e0c0; text-align: left; display: none;"></div>
-      </div>`;
-    speakGuideline('사진을 받았어요! 어디를 누르셔야 할지 손자가 확인해 볼게요.');
-    triggerAvatarBubble('사진을 분석 중이에요! 잠시만 기다려주세요.');
-  }
-
-  function clearPhoto() {
-    document.getElementById('photo-preview-area').classList.add('hidden');
-    document.getElementById('photo-preview-area').innerHTML = '';
-    document.getElementById('photo-upload').value = '';
-  }
-
-  async function openCamera() {
-    const area  = document.getElementById('camera-area');
-    const video = document.getElementById('camera-video');
-    try {
-      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-      video.srcObject = cameraStream;
-      area.classList.remove('hidden');
-      speakGuideline('카메라가 켜졌어요. 촬영 버튼을 눌러 사진을 찍어보세요.');
-    } catch (e) {
-      alert('할머니, 할아버지! 카메라 사용 권한이 필요해요. 브라우저에서 카메라 허용을 눌러주세요.');
-    }
-  }
-
-  function capturePhoto() {
-    const video  = document.getElementById('camera-video');
-    const canvas = document.getElementById('camera-canvas');
-    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    const imgData = canvas.toDataURL('image/jpeg');
-    closeCamera();
-    showPhotoPreview(imgData);
-    analyzeImageWithGemini(imgData);
-  }
-
-  function closeCamera() {
-    if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
-    document.getElementById('camera-area').classList.add('hidden');
-  }
-
-  async function analyzeImageWithGemini(base64Data) {
-    try {
-      const base64Image = base64Data.split(',')[1];
-      const promptText = "너는 눈이 침침하신 할머니, 할아버지를 도와드리는 인공지능 손주야. 할아버지가 올려주신 스마트폰/기기 화면 캡처 사진을 정밀하게 분석해서, 다음 단계로 넘어가기 위해 '지금 이 화면에서 정확히 어떤 버튼이나 글자를 마우스나 손가락으로 클릭해야 하는지' 위치와 모양을 묘사하며 아주 다정하고 알기 쉽게 설명해 줘. 문장 끝에는 무조건 '할머니, 할아버지!'를 붙여줘.";
-      
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { text: promptText },
-              { inline_data: { mime_type: "image/jpeg", data: base64Image } }
-            ]
-          }],
-          generationConfig: { temperature: 0.4 }
-        })
-      });
-      
-      if (!response.ok) throw new Error('API Request Failed');
-      const data = await response.json();
-      const analysisText = data.candidates[0].content.parts[0].text;
-      
-      const statusEl = document.getElementById('photo-analysis-status');
-      const resultEl = document.getElementById('photo-analysis-result');
-      
-      if(statusEl) statusEl.textContent = '✅ 분석이 완료되었어요!';
-      if(resultEl) {
-        resultEl.style.display = 'block';
-        resultEl.innerHTML = `<strong>손자의 설명:</strong><br><span style="line-height: 1.6;">${analysisText.replace(/\n/g, '<br>')}</span>`;
-      }
-      
-      speakGuideline(analysisText);
-      triggerAvatarBubble('설명을 띄워드렸어요! 천천히 읽어보세요.');
-      
-    } catch (err) {
-      console.error('Gemini Vision Error:', err);
-      const statusEl = document.getElementById('photo-analysis-status');
-      if(statusEl) {
-        statusEl.textContent = '❌ 사진을 분석하는데 문제가 생겼어요.';
-        statusEl.style.color = '#e74c3c';
-      }
-      triggerAvatarBubble('사진을 보는 중에 문제가 생겼어요. 다시 한 번 올려주시겠어요?');
-      speakGuideline('앗, 오류가 발생했어요. 다시 사진을 올려주세요.');
-    }
-  }
-
     "atm": {
         "icon": "🏧",
         "appName": "은행 ATM 현금 인출기",
@@ -1376,6 +1263,118 @@
         ]
     }
 };
+
+  // =============================================
+  // 사진 및 카메라 (멀티모달 Gemini 연동)
+  // =============================================
+  function handlePhotoUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      showPhotoPreview(e.target.result);
+      analyzeImageWithGemini(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function showPhotoPreview(base64Data) {
+    const area = document.getElementById('photo-preview-area');
+    area.classList.remove('hidden');
+    area.innerHTML = `
+      <div class="photo-preview-wrapper" style="text-align: center;">
+        <img src="${base64Data}" alt="업로드된 사진" class="photo-preview-img" style="max-height: 250px; border-radius: 8px;">
+        <p id="photo-analysis-status" class="photo-preview-label" style="font-weight: bold; margin-top: 10px; color: #4a90d9;">
+          손자가 열심히 화면을 분석하고 있어요... 🧐
+        </p>
+        <button class="action-btn" onclick="clearPhoto()" style="margin-top:0.8rem;padding:0.6rem 1rem;">🗑️ 사진 지우기</button>
+        <div id="photo-analysis-result" style="margin-top: 15px; padding: 15px; background: #fdf9f2; border-radius: 8px; border: 1px solid #f0e0c0; text-align: left; display: none;"></div>
+      </div>`;
+    speakGuideline('사진을 받았어요! 어디를 누르셔야 할지 손자가 확인해 볼게요.');
+    triggerAvatarBubble('사진을 분석 중이에요! 잠시만 기다려주세요.');
+  }
+
+  function clearPhoto() {
+    document.getElementById('photo-preview-area').classList.add('hidden');
+    document.getElementById('photo-preview-area').innerHTML = '';
+    document.getElementById('photo-upload').value = '';
+  }
+
+  async function openCamera() {
+    const area  = document.getElementById('camera-area');
+    const video = document.getElementById('camera-video');
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+      video.srcObject = cameraStream;
+      area.classList.remove('hidden');
+      speakGuideline('카메라가 켜졌어요. 촬영 버튼을 눌러 사진을 찍어보세요.');
+    } catch (e) {
+      alert('할머니, 할아버지! 카메라 사용 권한이 필요해요. 브라우저에서 카메라 허용을 눌러주세요.');
+    }
+  }
+
+  function capturePhoto() {
+    const video  = document.getElementById('camera-video');
+    const canvas = document.getElementById('camera-canvas');
+    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const imgData = canvas.toDataURL('image/jpeg');
+    closeCamera();
+    showPhotoPreview(imgData);
+    analyzeImageWithGemini(imgData);
+  }
+
+  function closeCamera() {
+    if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+    document.getElementById('camera-area').classList.add('hidden');
+  }
+
+  async function analyzeImageWithGemini(base64Data) {
+    try {
+      const base64Image = base64Data.split(',')[1];
+      const promptText = "너는 눈이 침침하신 할머니, 할아버지를 도와드리는 인공지능 손주야. 할아버지가 올려주신 스마트폰/기기 화면 캡처 사진을 정밀하게 분석해서, 다음 단계로 넘어가기 위해 '지금 이 화면에서 정확히 어떤 버튼이나 글자를 마우스나 손가락으로 클릭해야 하는지' 위치와 모양을 묘사하며 아주 다정하고 알기 쉽게 설명해 줘. 문장 끝에는 무조건 '할머니, 할아버지!'를 붙여줘.";
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: promptText },
+              { inline_data: { mime_type: "image/jpeg", data: base64Image } }
+            ]
+          }],
+          generationConfig: { temperature: 0.4 }
+        })
+      });
+      
+      if (!response.ok) throw new Error('API Request Failed');
+      const data = await response.json();
+      const analysisText = data.candidates[0].content.parts[0].text;
+      
+      const statusEl = document.getElementById('photo-analysis-status');
+      const resultEl = document.getElementById('photo-analysis-result');
+      
+      if(statusEl) statusEl.textContent = '✅ 분석이 완료되었어요!';
+      if(resultEl) {
+        resultEl.style.display = 'block';
+        resultEl.innerHTML = `<strong>손자의 설명:</strong><br><span style="line-height: 1.6;">\${analysisText.replace(/\\n/g, '<br>')}</span>`;
+      }
+      
+      speakGuideline(analysisText);
+      triggerAvatarBubble('설명을 띄워드렸어요! 천천히 읽어보세요.');
+      
+    } catch (err) {
+      console.error('Gemini Vision Error:', err);
+      const statusEl = document.getElementById('photo-analysis-status');
+      if(statusEl) {
+        statusEl.textContent = '❌ 사진을 분석하는데 문제가 생겼어요.';
+        statusEl.style.color = '#e74c3c';
+      }
+      triggerAvatarBubble('사진을 보는 중에 문제가 생겼어요. 다시 한 번 올려주시겠어요?');
+      speakGuideline('앗, 오류가 발생했어요. 다시 사진을 올려주세요.');
+    }
+  }
 
   function searchGuide(kw) {
     const inp = document.getElementById('guide-input');
