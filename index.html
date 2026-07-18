@@ -1313,24 +1313,38 @@
 
   function renderGuide(match) {
     const resultEl = document.getElementById('guide-result');
-    document.getElementById('guide-app-badge').innerHTML =
-      `<span class="guide-app-icon">${match.icon}</span><span class="guide-app-name">${match.appName}</span>`;
-    document.getElementById('guide-intro-text').textContent = match.intro;
-
-    document.getElementById('guide-steps-list').innerHTML = match.steps.map(s => `
-      <div class="guide-step-item">
-        <div class="guide-step-num">${s.num}단계</div>
-        <div class="guide-step-body">
-          <div class="guide-step-title">${s.title}</div>
-          <div class="guide-step-desc">${s.desc}</div>
-          <div class="guide-step-img-wrap">
-            ${s.mockupHTML || generateGenericMockup(s.title, s.emoji || '✨', match.appName)}
-          </div>
+    
+    // Create the new result-card HTML structure
+    resultEl.innerHTML = `
+      <div class="result-card" style="margin-top: 10px;">
+        <span class="match-badge">${match.appName} 사용법 안내</span>
+        <div class="app-name">${match.icon} ${match.appName}</div>
+        <div class="app-desc">${match.intro}</div>
+        <div class="howto-title">이렇게 따라해 보세요</div>
+        <ol class="step-list">
+          ${match.steps.map(s => `
+            <li class="step-item">
+              <span class="step-num">${s.num}</span>
+              <span class="step-text">
+                <strong>${s.title}</strong><br>
+                ${s.desc}
+              </span>
+              <span class="step-visual">
+                ${s.mockupHTML || generateGenericMockup(s.title, s.emoji || '✨', match.appName)}
+              </span>
+            </li>
+          `).join('')}
+        </ol>
+        ${match.warnings && match.warnings.length > 0 ? `
+        <div class="cautions-box">
+          <div class="caution-title">할머니, 할아버지 이것만은 주의하세요!</div>
+          <ul class="caution-list">
+            ${match.warnings.map(w => `<li>${w}</li>`).join('')}
+          </ul>
         </div>
-      </div>`).join('');
-
-    document.getElementById('guide-warnings-list').innerHTML = (match.warnings || []).map(w => `
-      <div class="guide-warning-item"><span class="warn-dot">⚠️</span><span>${w}</span></div>`).join('');
+        ` : ''}
+      </div>
+    `;
 
     resultEl.classList.remove('hidden');
     resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1339,17 +1353,18 @@
   }
 
   function generateGenericMockup(title, emoji, appName) {
-    return `<div class="hifi-mockup" style="background:#f0f0f0; border-color:#aaa;">
-      <div class="hifi-notch"></div>
-      <div class="hifi-topbar" style="background:#4A5568; color:#fff; justify-content:center;">
-        <span class="title" style="text-align:center; margin:0;">${appName}</span>
+    return `
+      <div class="mini-phone">
+        <div class="mini-screen">
+          <div class="mini-status">${appName}</div>
+          <div class="mini-body" style="justify-content:center; align-items:center;">
+            <div style="font-size:24px; margin-bottom:10px; animation: target-pulse 1s infinite alternate;" class="hifi-target-sm">${emoji}</div>
+            <div class="mini-title" style="text-align:center; word-break:keep-all;">${title}</div>
+            <div class="finger-cursor" style="font-size:16px; margin-top:5px;">👆</div>
+          </div>
+        </div>
       </div>
-      <div class="hifi-content" style="background:#fff; justify-content:center; align-items:center; text-align:center; padding: 20px;">
-        <div style="font-size:3.5rem; margin-bottom:15px; animation: target-pulse 1s infinite alternate;" class="hifi-target">${emoji}</div>
-        <div style="font-size:1.1rem; font-weight:900; color:#111; word-break:keep-all;">${title}</div>
-        <div class="finger-cursor" style="top:180px;left:100px;">👆</div>
-      </div>
-    </div>`;
+    `;
   }
 
   async function callGeminiForIntent(query) {
