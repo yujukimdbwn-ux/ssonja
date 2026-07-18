@@ -364,9 +364,13 @@
         </div>
         <div class="settings-group">
           <h3>비서 캐릭터</h3>
-          <div class="radio-buttons-container">
+          <div class="radio-buttons-container" style="flex-wrap: wrap; gap: 8px;">
             <label class="custom-radio-option">
-              <input type="radio" name="avatar-gender" value="grandson" checked onchange="changeAvatarGender('grandson')">
+              <input type="radio" name="avatar-gender" value="none" checked onchange="changeAvatarGender('none')">
+              <span class="radio-custom-box">👩‍💼 기본 비서</span>
+            </label>
+            <label class="custom-radio-option">
+              <input type="radio" name="avatar-gender" value="grandson" onchange="changeAvatarGender('grandson')">
               <span class="radio-custom-box">👦 든든한 손자</span>
             </label>
             <label class="custom-radio-option">
@@ -398,7 +402,7 @@
   // 전역 상태
   // =============================================
   let voiceEnabled   = true;
-  let avatarGender   = 'grandson';
+  let avatarGender   = 'none';
   let fontScaleLevel = 3;
   let recognition    = null;
   let isListening    = false;
@@ -872,12 +876,21 @@
       voiceEnabled = savedVoice === 'true';
       document.getElementById('voice-support-toggle').checked = voiceEnabled;
     }
-    const savedGender = localStorage.getItem('avatar-gender');
-    if (savedGender) {
-      avatarGender = savedGender;
-      const radioEl = document.querySelector(`input[name="avatar-gender"][value="${avatarGender}"]`);
-      if (radioEl) radioEl.checked = true;
-    }
+    const savedGender = localStorage.getItem('avatar-gender') || 'none';
+    avatarGender = savedGender;
+    const radioEl = document.querySelector(`input[name="avatar-gender"][value="${avatarGender}"]`);
+    if (radioEl) radioEl.checked = true;
+    
+    // Apply gender classes to all wrappers
+    const wrappers = document.querySelectorAll('.avatar-img-wrapper');
+    wrappers.forEach(el => {
+      el.classList.remove('gender-girl', 'gender-boy');
+      if (avatarGender === 'granddaughter') {
+        el.classList.add('gender-girl');
+      } else if (avatarGender === 'grandson') {
+        el.classList.add('gender-boy');
+      }
+    });
     const savedScale = localStorage.getItem('font-scale');
     if (savedScale) {
       fontScaleLevel = parseInt(savedScale, 10);
@@ -2471,11 +2484,10 @@
     
     // Create the interactive result-card HTML structure
     resultEl.innerHTML = `
-      <div class="result-card" style="margin-top: 10px;">
-        <span class="match-badge">${match.appName} 사용법 안내</span>
-        <div class="app-name">${match.icon} ${match.appName}</div>
-        <div class="app-desc">${match.intro}</div>
-        <div class="howto-title">이렇게 따라해 보세요</div>
+      <div style="margin-top: 10px;">
+        <span class="match-badge" style="display: inline-block; background: var(--accent); color: var(--text); font-size: 1.05rem; padding: 5px 14px; border-radius: 20px; margin-bottom: 10px; font-weight: bold; border: 2px solid var(--border);">${match.appName} 사용법 안내</span>
+        <div class="app-name" style="font-size: 1.8rem; font-weight: bold; font-family: 'Gowun Batang', serif; margin-bottom: 6px; color: var(--text);">${match.icon} ${match.appName}</div>
+        <div class="app-desc" style="font-size: 1.15rem; color: var(--text-sub); margin-bottom: 20px; line-height: 1.6;">${match.intro}</div>
         <div class="step-list" id="interactive-step-list">
           ${match.steps.map((s, idx) => {
             // Determine image container inner HTML
@@ -3033,12 +3045,27 @@
   function changeAvatarGender(gender) {
     avatarGender = gender;
     localStorage.setItem('avatar-gender', gender);
+    
+    // Update ribbon/tie classes on all avatars
+    const wrappers = document.querySelectorAll('.avatar-img-wrapper');
+    wrappers.forEach(el => {
+      el.classList.remove('gender-girl', 'gender-boy');
+      if (gender === 'granddaughter') {
+        el.classList.add('gender-girl');
+      } else if (gender === 'grandson') {
+        el.classList.add('gender-boy');
+      }
+    });
+
     if (gender === 'granddaughter') {
       triggerAvatarBubble('상냥한 손녀로 변경 완료!');
       speakGuideline('안녕하세요! 저는 할머니, 할아버지를 돕는 손녀 비서예요.');
-    } else {
+    } else if (gender === 'grandson') {
       triggerAvatarBubble('든든한 손자로 변경 완료!');
       speakGuideline('안녕하세요! 저는 할머니, 할아버지를 돕는 손자 비서예요.');
+    } else {
+      triggerAvatarBubble('기본 비서로 변경 완료!');
+      speakGuideline('안녕하세요! 저는 할머니, 할아버지를 돕는 비서예요.');
     }
   }
 
@@ -3050,7 +3077,7 @@
   }
 
   // =============================================
-  // TTS - Pitch 1.4, Rate 0.9 어린이 음성
+  // TTS - 어린아이 목소리 제어 (손녀: 여아, 손자: 남아, 기본: 중성)
   // =============================================
   function speakGuideline(text) {
     if (!voiceEnabled || !('speechSynthesis' in window)) return;
@@ -3059,18 +3086,24 @@
     utt.lang = 'ko-KR';
     const voices   = window.speechSynthesis.getVoices();
     const koVoices = voices.filter(v => v.lang === 'ko-KR' || v.lang.startsWith('ko'));
+    
     if (avatarGender === 'granddaughter') {
       let v = koVoices.find(v => /yuna|female|woman|sun.hi|heami/i.test(v.name));
       if (!v && koVoices.length) v = koVoices[0];
       if (v) utt.voice = v;
-      utt.pitch = 1.4; // 피치 1.4 설정
-      utt.rate  = 0.9;  // 속도 0.9 설정
-    } else {
+      utt.pitch = 1.5; // 높은 여아 목소리
+      utt.rate  = 0.9;
+    } else if (avatarGender === 'grandson') {
       let v = koVoices.find(v => /minjun|male|man|injoon/i.test(v.name));
       if (!v && koVoices.length) v = koVoices.find(vv => !/yuna|sun.hi|heami/i.test(vv.name)) || koVoices[0];
       if (v) utt.voice = v;
-      utt.pitch = 1.4; // 피치 1.4 설정
-      utt.rate  = 0.9;  // 속도 0.9 설정
+      utt.pitch = 1.2; // 약간 낮은 남아 목소리
+      utt.rate  = 0.9;
+    } else {
+      // 기본 비서 - 중성 어린아이 목소리
+      if (koVoices.length) utt.voice = koVoices[0];
+      utt.pitch = 1.35; // 중성적인 중간 톤의 아동 피치
+      utt.rate  = 0.9;
     }
     const avatars = document.querySelectorAll('.avatar-img-wrapper');
     avatars.forEach(a => { a.classList.add('talking'); a.classList.remove('smiling','listening'); });
