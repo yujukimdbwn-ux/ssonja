@@ -2657,7 +2657,17 @@
       body: reqBody
     });
 
-    if (!response.ok) throw new Error('Gemini Phishing API Failed');
+    if (!response.ok) {
+      const errText = await response.text();
+      let parsedErr = errText;
+      try {
+        const jsonErr = JSON.parse(errText);
+        if (jsonErr.error && jsonErr.error.message) {
+          parsedErr = jsonErr.error.message;
+        }
+      } catch(e) {}
+      throw new Error(`API 오류 (${response.status}): ${parsedErr}`);
+    }
     const data = await response.json();
     const resultText = data.candidates[0].content.parts[0].text;
     return resultText;
@@ -2709,7 +2719,7 @@
     } catch (err) {
       console.error('Phishing check error, using fallback:', err);
       pct = 50;
-      reason = "API 연결 오류로 인하여 임시 진단합니다. 확인이 필요한 문장입니다.";
+      reason = `API 연결 오류로 인하여 임시 진단합니다. 확인이 필요한 문장입니다.<br><small style="color:#7f8c8d; font-weight:normal; font-size:13px;">(상세 오류: ${err.message})</small>`;
     }
 
     try {
