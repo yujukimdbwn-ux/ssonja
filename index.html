@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>쏜자 - 할머니, 할아버지를 위한 디지털 길잡이</title>
+  <meta name="description" content="고령층의 디지털 소외를 해소하는 웹앱 쏜자입니다.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-light">
+
+  <!-- 온보딩 팝업 -->
+  <div id="onboarding-popup" class="onboarding-popup" aria-modal="true" role="dialog">
+    <div class="onboarding-overlay"></div>
+    <div class="onboarding-content">
+      <div class="onboarding-header">
+        <span class="onboarding-badge">안내</span>
+      </div>
+      <div class="onboarding-body">
+        <div class="onboarding-avatar-preview">
+          <div class="avatar-img-wrapper onboarding-char" id="onboarding-avatar">
+            <img src="무제97_20260718181051 (1).png" alt="쏜자 비서 캐릭터" class="avatar-img"
+              onerror="this.style.display='none'; this.parentElement.classList.add('avatar-fallback');">
+            <div class="avatar-fallback-face">
+              <div class="fb-eyes"><div class="fb-eye"></div><div class="fb-eye"></div></div>
+              <div class="fb-mouth"></div>
+            </div>
+          </div>
+        </div>
+        <h2>반갑습니다!</h2>
+        <p class="onboarding-text">할머니, 할아버지! 오른쪽 위 설정 버튼에 들어가시면 글자 크기와 비서를 조정하실 수 있어요!</p>
+      </div>
+      <div class="onboarding-footer">
+        <button class="action-btn" onclick="closeOnboarding()">이해했습니다 (시작하기)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 헤더 -->
+  <header class="app-header">
+    <div class="logo" id="app-logo" onclick="showScreen('home-screen')" role="button" tabindex="0">
+      <img src="무제100_20260718183258.png" alt="쏜자 로고" class="logo-img"
+        onerror="this.outerHTML='<span class=\'logo-text\'>{쏜자}</span>';">
+    </div>
+    <button class="settings-btn" id="settings-toggle-btn" aria-label="설정 열기">
+      <svg class="icon-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+      <span>설정</span>
+    </button>
+  </header>
+
+  <!-- 메인 컨테이너 -->
+  <main class="app-container">
+
+    <!-- 1. 홈 화면 -->
+    <section id="home-screen" class="screen active">
+      <div class="home-welcome-header">
+        <div class="welcome-avatar-wrapper" onclick="triggerAvatarSpeech('환영')" role="button" tabindex="0">
+          <div class="avatar-img-wrapper mini-avatar" id="home-mini-avatar">
+            <img src="무제97_20260718181051 (1).png" alt="쏜자 비서" class="avatar-img"
+              onerror="this.style.display='none'; this.parentElement.classList.add('avatar-fallback');">
+            <div class="avatar-fallback-face">
+              <div class="fb-eyes"><div class="fb-eye"></div><div class="fb-eye"></div></div>
+              <div class="fb-mouth"></div>
+            </div>
+          </div>
+          <span class="pulse-ring"></span>
+        </div>
+        <div>
+          <h1 class="screen-title">무엇을 도와드릴까요?</h1>
+          <p class="screen-subtitle">원하시는 서비스를 눌러보세요.</p>
+        </div>
+      </div>
+
+      <div class="menu-grid">
+        <button class="menu-card" id="btn-translator" onclick="showScreen('translator-screen')">
+          <span class="menu-icon">💬</span>
+          <span class="menu-text">요즘말 번역기</span>
+          <span class="menu-desc">자녀나 손주가 쓰는 신조어를 AI가 번역해 드려요.</span>
+        </button>
+        <button class="menu-card" id="btn-dictionary" onclick="showScreen('dictionary-screen')">
+          <span class="menu-icon">📱</span>
+          <span class="menu-text">사용법 가이드</span>
+          <span class="menu-desc">키오스크·ATM·카카오톡 사용법을 차근차근 알려드려요.</span>
+        </button>
+        <button class="menu-card" id="btn-phishing" onclick="showScreen('phishing-screen')">
+          <span class="menu-icon">🚨</span>
+          <span class="menu-text">보이스피싱 검출기</span>
+          <span class="menu-desc">의심스러운 문자나 전화 내용을 확인해 보세요.</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 2. 요즘말 번역기 화면 -->
+    <section id="translator-screen" class="screen">
+      <button class="back-btn" onclick="showScreen('home-screen')">⬅️ 뒤로 가기</button>
+
+      <div class="translator-header">
+        <h1 class="screen-title">💬 요즘말 번역기</h1>
+        <p class="translator-subtitle">어떤 단어의 뜻이 궁금하신가요?</p>
+        <div id="csv-status" class="csv-status">
+          <span class="csv-dot loading" id="csv-dot"></span>
+          <span id="csv-status-text">MZ 뉴스 데이터 불러오는 중...</span>
+        </div>
+      </div>
+
+      <div class="translator-input-card">
+        <div class="translator-input-row">
+          <div class="translator-input-wrapper">
+            <textarea
+              id="translator-input"
+              class="translator-textarea"
+              placeholder="예시: 스불재, 핑계고, 갓생, 바이브코딩..."
+              rows="3"
+            ></textarea>
+          </div>
+          <button id="mic-btn" class="mic-btn" onclick="startSpeechRecognition()" aria-label="음성 인식 시작">
+            <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="2" width="6" height="11" rx="3" ry="3"></rect>
+              <path d="M5 11a7 7 0 0 0 14 0"></path>
+              <line x1="12" y1="18" x2="12" y2="22"></line>
+              <line x1="8" y1="22" x2="16" y2="22"></line>
+            </svg>
+            <span class="mic-btn-label" id="mic-btn-label">말하기</span>
+          </button>
+        </div>
+
+        <div id="stt-status" class="stt-status hidden">
+          <span class="stt-dot"></span>
+          <span id="stt-status-text">듣고 있어요... 말씀해 주세요!</span>
+        </div>
+
+        <button class="action-btn translator-translate-btn" id="translate-btn" onclick="doTranslate()">
+          🔍 번역하기
+        </button>
+      </div>
+
+      <!-- AI 로딩 표시 -->
+      <div id="ai-loading" class="ai-loading hidden">
+        <div class="ai-loading-inner">
+          <div class="ai-spinner"></div>
+          <span>AI가 열심히 찾고 있어요...</span>
+        </div>
+      </div>
+
+      <!-- 번역 결과 카드 -->
+      <div id="translator-result-card" class="translator-result-card hidden">
+        <div class="result-header">
+          <span class="result-badge" id="result-source-badge">번역 결과</span>
+          <button class="result-replay-btn" id="replay-tts-btn" onclick="replayTTS()" title="소리로 읽어주기">
+            🔊 읽어주기
+          </button>
+        </div>
+        <div class="result-word" id="result-word"></div>
+        <div class="result-meaning" id="result-meaning"></div>
+        <div id="result-csv-ref" class="result-csv-ref hidden">
+          <span class="csv-ref-badge">📰 관련 뉴스 (MZ 데이터)</span>
+          <div id="csv-ref-list" class="csv-ref-list"></div>
+        </div>
+      </div>
+
+      <!-- 번역기 캐릭터 -->
+      <div class="translator-avatar-area">
+        <div class="avatar-img-wrapper translator-avatar" id="translator-avatar-char">
+          <img src="무제97_20260718181051 (1).png" alt="쏜자 비서" class="avatar-img"
+            onerror="this.style.display='none'; this.parentElement.classList.add('avatar-fallback');">
+          <div class="avatar-fallback-face large">
+            <div class="fb-eyes"><div class="fb-eye"></div><div class="fb-eye"></div></div>
+            <div class="fb-mouth"></div>
+          </div>
+        </div>
+        <p class="translator-char-comment" id="translator-char-comment">단어를 입력하거나 말씀해 주세요!</p>
+      </div>
+    </section>
+
+    <!-- 3. 사용법 가이드 -->
+    <section id="dictionary-screen" class="screen">
+      <button class="back-btn" onclick="showScreen('home-screen')">⬅️ 뒤로 가기</button>
+
+      <div class="guide-header">
+        <h1 class="screen-title">📱 사용법 가이드</h1>
+        <p class="guide-subtitle">무엇을 도와드릴까요?</p>
+      </div>
+
+      <div class="guide-search-card">
+        <div class="guide-topic-chips">
+          <button class="topic-chip" onclick="searchGuide('키오스크')">🖥️ 키오스크</button>
+          <button class="topic-chip" onclick="searchGuide('등본')">📄 등본 발급</button>
+          <button class="topic-chip" onclick="searchGuide('atm')">🏧 은행 ATM</button>
+          <button class="topic-chip" onclick="searchGuide('식당')">🍽️ 식당 예약</button>
+          <button class="topic-chip" onclick="searchGuide('카카오')">💬 카카오톡</button>
+          <button class="topic-chip" onclick="searchGuide('배달')">🛵 배달 주문</button>
+        </div>
+
+        <div class="guide-input-row">
+          <input type="text" id="guide-input" class="app-input guide-input"
+            placeholder="직접 검색하세요 (예: 키오스크, ATM, 등본...)">
+          <button class="action-btn guide-search-btn" onclick="doGuideSearch()">🔍 찾기</button>
+        </div>
+
+        <div class="guide-media-section">
+          <p class="guide-media-label">📷 화면을 사진으로 찍어 보내주셔도 돼요!</p>
+          <div class="guide-media-btns">
+            <label class="media-btn" for="photo-upload" role="button" tabindex="0">
+              <input type="file" id="photo-upload" accept="image/*" style="display:none;" onchange="handlePhotoUpload(this)">
+              <span class="media-btn-icon">🖼️</span>
+              <span class="media-btn-text">사진 추가</span>
+            </label>
+            <button class="media-btn" onclick="openCamera()">
+              <span class="media-btn-icon">📸</span>
+              <span class="media-btn-text">카메라 켜기</span>
+            </button>
+          </div>
+          <div id="photo-preview-area" class="photo-preview-area hidden"></div>
+          <div id="camera-area" class="camera-area hidden">
+            <video id="camera-video" autoplay playsinline class="camera-video"></video>
+            <div class="camera-controls">
+              <button class="action-btn" onclick="capturePhoto()">📸 촬영하기</button>
+              <button class="action-btn color-alert" onclick="closeCamera()">✕ 카메라 끄기</button>
+            </div>
+            <canvas id="camera-canvas" style="display:none;"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div id="guide-result" class="guide-result hidden">
+        <div class="guide-result-header">
+          <div class="guide-app-badge" id="guide-app-badge"></div>
+          <p class="guide-intro-text" id="guide-intro-text"></p>
+        </div>
+        <h3 class="guide-steps-title">👆 이렇게 따라해보세요!</h3>
+        <div id="guide-steps-list" class="guide-steps-list"></div>
+        <div class="guide-warnings-section">
+          <div class="guide-warnings-header">
+            <span class="guide-warnings-icon">⚠️</span>
+            <h3 class="guide-warnings-title">할머니, 할아버지 이것만은 주의하세요!</h3>
+          </div>
+          <div id="guide-warnings-list" class="guide-warnings-list"></div>
+        </div>
+      </div>
+
+      <div id="guide-not-found" class="guide-not-found hidden">
+        <div class="not-found-icon">🤔</div>
+        <p class="not-found-text">할머니, 할아버지! 제가 아직 이 항목은 준비하지 못했어요.</p>
+        <p class="not-found-sub">위의 빠른 버튼 중 하나를 눌러보세요!</p>
+      </div>
+    </section>
+
+    <!-- 4. 보이스피싱 검출기 -->
+    <section id="phishing-screen" class="screen">
+      <button class="back-btn" onclick="showScreen('home-screen')">⬅️ 뒤로 가기</button>
+      <h1 class="screen-title">🚨 보이스피싱 검출기</h1>
+      <div class="screen-content">
+        <p>받으신 수상한 문자나 메신저 대화 내용을 입력해서 검사해 보세요.</p>
+        <textarea class="app-textarea" id="phishing-input" placeholder="문자 내용 또는 대화 전문을 붙여넣기 해 주세요."></textarea>
+        <button class="action-btn color-alert" onclick="doPhishingCheck()">🔍 피싱 위험도 검사</button>
+        <div id="phishing-result" class="phishing-result hidden"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 우측 하단 고정 캐릭터 -->
+  <div class="sonja-avatar" id="sonja-avatar-fixed" onclick="triggerAvatarInteraction()" role="button" tabindex="0">
+    <div class="avatar-speech-bubble" id="avatar-speech-bubble">
+      <span>안녕하세요!</span>
+      <div class="bubble-arrow"></div>
+    </div>
+    <div class="avatar-img-wrapper fixed-avatar" id="fixed-avatar-char">
+      <img src="무제97_20260718181051 (1).png" alt="쏜자 비서" class="avatar-img"
+        onerror="this.style.display='none'; this.parentElement.classList.add('avatar-fallback');">
+      <div class="avatar-fallback-face">
+        <div class="fb-eyes"><div class="fb-eye"></div><div class="fb-eye"></div></div>
+        <div class="fb-mouth"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 설정 모달 -->
+  <div id="settings-modal" class="settings-modal" aria-hidden="true">
+    <div class="settings-overlay" id="settings-overlay"></div>
+    <div class="settings-content">
+      <div class="settings-header">
+        <h2>화면 및 비서 설정</h2>
+        <button class="close-btn" id="settings-close-btn" aria-label="설정 닫기">&times;</button>
+      </div>
+      <div class="settings-body">
+        <div class="settings-group">
+          <div class="settings-group-header">
+            <h3>글자 크기</h3>
+            <span class="setting-desc">5단계 조정</span>
+          </div>
+          <div class="font-scale-slider-wrapper">
+            <div class="slider-labels">
+              <span>작게</span><span>기본</span><span>아주크게</span>
+            </div>
+            <input type="range" id="font-scale-slider" min="1" max="5" value="3" step="1" oninput="updateFontScale(this.value)">
+            <div class="font-preview-box" id="font-preview-box">가나다라마바사 (보통 크기)</div>
+          </div>
+        </div>
+        <div class="settings-group">
+          <h3>화면 모드</h3>
+          <div class="toggle-buttons-grid">
+            <button id="theme-light-btn" class="toggle-option active" onclick="setTheme('light')">☀️ 화사한 화면</button>
+            <button id="theme-dark-btn" class="toggle-option" onclick="setTheme('dark')">🌙 눈편한 화면</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <h3>비서 캐릭터</h3>
+          <div class="radio-buttons-container">
+            <label class="custom-radio-option">
+              <input type="radio" name="avatar-gender" value="grandson" checked onchange="changeAvatarGender('grandson')">
+              <span class="radio-custom-box">👦 든든한 손자</span>
+            </label>
+            <label class="custom-radio-option">
+              <input type="radio" name="avatar-gender" value="granddaughter" onchange="changeAvatarGender('granddaughter')">
+              <span class="radio-custom-box">👧 상냥한 손녀</span>
+            </label>
+          </div>
+        </div>
+        <div class="settings-group">
+          <h3>음성 안내 서비스</h3>
+          <div class="switch-row">
+            <span class="switch-label">음성지원 기능 사용 여부 (On/Off)</span>
+            <label class="switch-toggle">
+              <input type="checkbox" id="voice-support-toggle" checked onchange="updateVoiceSupport(this.checked)">
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // =============================================
+  // Gemini API 설정
+  // =============================================
+  const GEMINI_API_KEY = ''; // Vercel 환경변수 등 안전한 방식으로 주입하세요.
+  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+  // =============================================
+  // 전역 상태
+  // =============================================
+  let voiceEnabled   = true;
+  let avatarGender   = 'grandson';
+  let fontScaleLevel = 3;
+  let recognition    = null;
+  let isListening    = false;
+  let lastTranslatedText = '';
+  let csvKeywordMap  = {};
+  let csvLoaded      = false;
+  let cameraStream   = null;
+
+  const scaleValues = { 1:0.8, 2:0.9, 3:1.0, 4:1.25, 5:1.5 };
+  const scaleTexts  = {
+    1: '가나다 (아주 작게)',
+    2: '가나다 (조금 작게)',
+    3: '가나다라마바사 (보통 크기)',
+    4: '가나다라마바사 (크게 보기)',
+    5: '가나다라마바사 (아주 크게)'
+  };
+
+  // =============================================
+  // 내장 신조어 딕셔너리 (1단계)
+  // =============================================
+  const slangDictionary = {
+    '스불재':    "스불재는 '스스로 불러온 재앙'의 줄임말이에요! 내가 직접 만든 힘든 상황을 말해요. 예를 들어 무리하게 약속을 잡고 힘들어하면 '이건 스불재야' 하고 써요. 할머니, 할아버지!",
+    '중꺾마':    "중꺾마는 '중요한 건 꺾이지 않는 마음'의 줄임말이에요! 힘든 상황에서도 포기하지 말자는 응원 메시지랍니다. 손주가 시험 앞두고 파이팅할 때 자주 써요. 할머니, 할아버지!",
+    '어쩔티비':  "어쩔티비는 '어쩌라고? TV나 봐!'를 줄인 말이에요! 상대방이 잔소리할 때 장난스럽게 반박하는 표현이에요. 너무 놀라지 마세요, 농담이랍니다! 할머니, 할아버지!",
+    '티키타카':  "티키타카는 축구 용어에서 온 말이에요! 짧고 빠르게 공을 주고받는 것처럼, 두 사람이 재미있고 빠르게 대화를 주고받는 상황을 가리켜요. 할머니, 할아버지!",
+    '핑계고':    "핑계고는 유명 유튜브 예능 프로그램 이름이에요! 연예인들이 핑계를 대며 모이는 프로그램인데, 요즘 젊은이들 사이에서 아주 인기 있답니다. 할머니, 할아버지!",
+    '갓생':      "갓생은 '갓(GOD·신)'과 '인생'을 합친 말이에요! 매우 부지런하고 알차게 하루를 보내는 삶을 칭찬할 때 써요. '오늘도 갓생 살았다!'처럼 쓴답니다. 할머니, 할아버지!",
+    '억까':      "억까는 '억지로 까다(억지로 비판하다)'의 줄임말이에요! 이유 없이 무조건 나쁘게 말하거나 트집 잡는 행동을 가리켜요. 할머니, 할아버지!",
+    'tmi':       "TMI는 'Too Much Information'의 영어 줄임말이에요! '알 필요 없는 너무 많은 정보'라는 뜻이에요. 굳이 안 해도 되는 말을 장황하게 할 때 'TMI야'라고 써요. 할머니, 할아버지!",
+    '혼밥':      "혼밥은 '혼자 밥을 먹는 것'을 줄인 말이에요! 요즘은 혼자 밥 먹는 것을 부끄럽게 여기지 않는 세대의 문화랍니다. 할머니, 할아버지!",
+    '혼술':      "혼술은 '혼자 술을 마시는 것'을 줄인 말이에요! 혼자 편하게 집에서 한잔하는 문화를 뜻해요. 할머니, 할아버지!",
+    '인싸':      "인싸는 영어 '인사이더(Insider)'의 줄임말이에요! 무리에서 인기가 많고 사교적인 사람을 가리켜요. 반대말은 '아싸'랍니다. 할머니, 할아버지!",
+    '아싸':      "아싸는 영어 '아웃사이더(Outsider)'의 줄임말이에요! 무리보다 혼자만의 시간을 즐기는 사람을 말해요. 요즘은 나쁜 의미가 아니에요. 할머니, 할아버지!",
+    '레전드':    "레전드는 '전설'이라는 뜻인데, 요즘은 '정말 대단하다, 역대급이다'라는 칭찬으로 써요! '그 드라마 레전드야!'처럼 쓴답니다. 할머니, 할아버지!",
+    '킹받다':    "킹받다는 '왕(King)처럼 엄청나게 열받는다'는 뜻이에요! 매우 화나고 짜증스러울 때 써요. 그냥 '많이 짜증난다'는 뜻이니 너무 놀라지 마세요! 할머니, 할아버지!",
+    '갬성':      "갬성은 '감성'을 귀엽게 말하는 표현이에요! '분위기 있고 감각적인 느낌'을 뜻해요. '이 카페 갬성 있다!'처럼 써요. 할머니, 할아버지!",
+    '현타':      "현타는 '현실 자각 타임'의 줄임말이에요! 신나게 놀다가 갑자기 '아, 내가 지금 뭘 하는 거지?' 하고 현실이 느껴지는 순간을 말해요. 할머니, 할아버지!",
+    '분포자':    "분포자는 '분석을 포기한 사람'의 줄임말이에요! 너무 복잡해서 더 이상 이해하려 하지 않고 그냥 포기해버린 사람을 재미있게 표현하는 말이랍니다. 할머니, 할아버지!",
+    '바이브코딩': "바이브코딩은 '분위기(Vibe)에 취해 신나고 즐겁게 코딩(프로그래밍)하는 것'을 뜻해요! 딱딱하게 공부하는 느낌이 아니라 흥이 나서 즐겁게 프로그램을 만드는 요즘 트렌드랍니다. 할머니, 할아버지!",
+    '오완운':    "오완운은 '오늘 완전 운동했어'의 줄임말이에요! 오늘 운동을 마쳤다는 뿌듯한 자랑의 표현이랍니다. 할머니, 할아버지!",
+    '당모치':    "당모치는 '당연히 모든 치킨은 맛있다'의 줄임말이에요! 치킨을 정말 좋아하는 마음을 재미있게 표현한 말이랍니다. 할머니, 할아버지!",
+    '분좋카':    "분좋카는 '분위기 좋다 카더라'의 줄임말이에요! 식당이나 카페의 분위기가 좋다는 뜻이에요. 할머니, 할아버지!",
+  };
+
+  function normalizeKey(str) {
+    return (str || '').trim().replace(/\s+/g, '').toLowerCase();
+  }
+
+  const normalizedDict = {};
+  for (const key in slangDictionary) {
+    normalizedDict[normalizeKey(key)] = { original: key, meaning: slangDictionary[key] };
+  }
+
+  // =============================================
+  // CSV 비동기 로딩 (2단계 데이터)
+  // =============================================
+  async function loadMZWordsCSV() {
+    const dotEl    = document.getElementById('csv-dot');
+    const textEl   = document.getElementById('csv-status-text');
+    const statusEl = document.getElementById('csv-status');
+
+    try {
+      const response = await fetch('mz_words.csv');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const buffer = await response.arrayBuffer();
+      let text;
+      try {
+        text = new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+      } catch (_) {
+        try {
+          text = new TextDecoder('euc-kr').decode(buffer);
+        } catch (__) {
+          text = new TextDecoder('utf-8', { fatal: false }).decode(buffer);
+        }
+      }
+
+      const lines = text.split('\n');
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const cols = parseCSVLine(line);
+        if (cols.length < 5) continue;
+        const date     = (cols[0] || '').trim().substring(0, 7);
+        const media    = (cols[1] || '').trim();
+        const title    = (cols[2] || '').trim();
+        const keywords = (cols[4] || '').trim().replace(/^["\u201c]|["\u201d]$/g, '');
+        if (!keywords) continue;
+        const kwList = keywords.split(',')
+          .map(k => normalizeKey(k))
+          .filter(k => k.length >= 2 && k.length <= 12);
+        for (const kw of kwList) {
+          if (!csvKeywordMap[kw]) csvKeywordMap[kw] = [];
+          if (csvKeywordMap[kw].length < 3) {
+            csvKeywordMap[kw].push({ date, media, title });
+          }
+        }
+      }
+
+      csvLoaded = true;
+      const kwCount = Object.keys(csvKeywordMap).length;
+      if (dotEl)   { dotEl.classList.remove('loading'); dotEl.classList.add('done'); }
+      if (textEl)  textEl.textContent = `MZ 뉴스 ${kwCount.toLocaleString()}개 키워드 + AI 번역 준비 완료!`;
+      if (statusEl) setTimeout(() => statusEl.classList.add('fade-out'), 3000);
+
+    } catch (err) {
+      console.warn('CSV 로딩 실패, 내장 데이터 + AI 사용:', err.message);
+      if (dotEl)  { dotEl.classList.remove('loading'); dotEl.style.background = '#7FB3D5'; }
+      if (textEl) textEl.textContent = '내장 데이터 + AI 번역 준비 완료!';
+      if (statusEl) setTimeout(() => statusEl.classList.add('fade-out'), 3000);
+    }
+  }
+
+  function parseCSVLine(line) {
+    const result = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"' || ch === '\u201c' || ch === '\u201d') {
+        inQ = !inQ;
+      } else if (ch === ',' && !inQ) {
+        result.push(cur); cur = '';
+      } else {
+        cur += ch;
+      }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  // =============================================
+  // 3단계: Gemini API 호출
+  // =============================================
+  async function callGeminiAPI(query) {
+    const isGranddaughter = avatarGender === 'granddaughter';
+    const roleDesc = isGranddaughter ? '다정한 손녀' : '든든한 손자';
+    const prompt = `너는 ${roleDesc}야. 할머니와 할아버지가 이해하기 쉽게 유행어나 신조어 뜻을 다정하게 설명해 줘. 문장 끝에는 꼭 '할머니, 할아버지!'를 붙여줘. 어렵거나 낯선 단어는 쉬운 예시를 들어 설명해 줘. 이모지는 1~2개만 사용해.
+
+다음 단어를 설명해줘: "${query}"
+
+단어 설명만 2~4문장으로 짧고 명확하게 답해줘. 앞에 "안녕하세요" 같은 인사말은 빼줘.`;
+
+    const body = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 300 }
+    };
+
+    const res = await fetch(GEMINI_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) throw new Error(`Gemini API 오류: ${res.status}`);
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('응답 없음');
+    return text.trim();
+  }
+
+  // =============================================
+  // 초기화
+  // =============================================
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedVoice = localStorage.getItem('voice-support');
+    if (savedVoice !== null) {
+      voiceEnabled = savedVoice === 'true';
+      document.getElementById('voice-support-toggle').checked = voiceEnabled;
+    }
+    const savedGender = localStorage.getItem('avatar-gender');
+    if (savedGender) {
+      avatarGender = savedGender;
+      const radioEl = document.querySelector(`input[name="avatar-gender"][value="${avatarGender}"]`);
+      if (radioEl) radioEl.checked = true;
+    }
+    const savedScale = localStorage.getItem('font-scale');
+    if (savedScale) {
+      fontScaleLevel = parseInt(savedScale, 10);
+      document.getElementById('font-scale-slider').value = fontScaleLevel;
+      updateFontScale(fontScaleLevel);
+    }
+
+    loadMZWordsCSV();
+
+    setTimeout(() => {
+      speakGuideline('안녕하세요! 할머니, 할아버지를 위한 쏜자 앱입니다. 설정에서 글자 크기를 조절하실 수 있어요.');
+    }, 900);
+
+    document.getElementById('translator-input')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doTranslate(); }
+    });
+    document.getElementById('guide-input')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); doGuideSearch(); }
+    });
+    document.getElementById('phishing-input')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doPhishingCheck(); }
+    });
+  });
+
+  // =============================================
+  // 온보딩
+  // =============================================
+  function closeOnboarding() {
+    const popup = document.getElementById('onboarding-popup');
+    popup.style.opacity = '0';
+    setTimeout(() => popup.style.display = 'none', 300);
+    speakGuideline('반갑습니다, 할머니, 할아버지! 무엇이든 도와드릴게요.');
+    triggerAvatarBubble('무엇을 도와드릴까요?');
+  }
+
+  // =============================================
+  // 화면 전환 (SPA)
+  // =============================================
+  function showScreen(screenId) {
+    if (isListening && recognition) recognition.stop();
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById(screenId);
+    if (target) { target.classList.add('active'); window.scrollTo(0, 0); }
+
+    const msgs = {
+      'home-screen':       ['홈 화면으로 돌아왔어요.', '홈 화면입니다. 원하시는 서비스를 눌러보세요.'],
+      'translator-screen': ['어떤 요즘말이 궁금하세요?', '요즘말 번역기입니다. 모르시는 신조어를 입력하시거나 말씀해 주세요.'],
+      'dictionary-screen': ['무엇을 도와드릴까요?', '사용법 가이드입니다. 키오스크, ATM, 카카오톡 등 사용법을 알려드려요.'],
+      'phishing-screen':   ['의심 문자를 검사해 드릴게요.', '보이스피싱 검출기입니다. 수상한 문자 내용을 붙여넣어 주세요.'],
+    };
+    if (msgs[screenId]) {
+      triggerAvatarBubble(msgs[screenId][0]);
+      speakGuideline(msgs[screenId][1]);
+    }
+    if (screenId === 'translator-screen') resetTranslatorResult();
+  }
+
+  // =============================================
+  // 3단계 하이브리드 번역기
+  // =============================================
+  async function doTranslate() {
+    const query = (document.getElementById('translator-input').value || '').trim();
+    if (!query) { triggerAvatarBubble('단어를 먼저 입력해 주세요!'); return; }
+
+    const nq = normalizeKey(query);
+    const resultCard  = document.getElementById('translator-result-card');
+    const resultWord  = document.getElementById('result-word');
+    const resultMean  = document.getElementById('result-meaning');
+    const csvRefBox   = document.getElementById('result-csv-ref');
+    const csvRefList  = document.getElementById('csv-ref-list');
+    const sourceBadge = document.getElementById('result-source-badge');
+    const aiLoading   = document.getElementById('ai-loading');
+    const translateBtn = document.getElementById('translate-btn');
+
+    // 1단계: 내장 딕셔너리
+    const builtin = normalizedDict[nq];
+    if (builtin) {
+      resultWord.textContent = `"${builtin.original}"`;
+      resultMean.textContent = builtin.meaning;
+      lastTranslatedText = builtin.meaning;
+      sourceBadge.textContent = '📚 내장 사전';
+      sourceBadge.className = 'result-badge badge-builtin';
+
+      const refs = csvKeywordMap[nq];
+      if (refs && refs.length > 0) {
+        csvRefBox.classList.remove('hidden');
+        csvRefList.innerHTML = refs.map(r =>
+          `<div class="csv-ref-item">📰 <strong>${r.media}</strong> (${r.date}) — ${r.title.substring(0,45)}${r.title.length>45?'…':''}</div>`
+        ).join('');
+      } else {
+        csvRefBox.classList.add('hidden');
+      }
+
+      popResult(resultCard);
+      updateTranslatorCharComment('찾았어요! 🔊 버튼을 눌러 들어보세요!');
+      triggerAvatarBubble('번역 완료! 🔊 버튼을 눌러보세요.');
+      return;
+    }
+
+    // 2단계: CSV 키워드 매칭
+    const refs = csvKeywordMap[nq];
+    if (refs && refs.length > 0) {
+      resultWord.textContent = `"${query}"`;
+      resultMean.textContent = `할머니, 할아버지! "${query}"는 MZ 뉴스에서 자주 등장하는 표현이에요. 관련 기사를 참고해보세요!`;
+      lastTranslatedText = resultMean.textContent;
+      sourceBadge.textContent = '📰 MZ 뉴스 데이터';
+      sourceBadge.className = 'result-badge badge-csv';
+
+      csvRefBox.classList.remove('hidden');
+      csvRefList.innerHTML = refs.map(r =>
+        `<div class="csv-ref-item">📰 <strong>${r.media}</strong> (${r.date}) — ${r.title.substring(0,50)}${r.title.length>50?'…':''}</div>`
+      ).join('');
+
+      popResult(resultCard);
+      updateTranslatorCharComment('MZ 뉴스 데이터에서 찾았어요! 📰');
+      triggerAvatarBubble('MZ 뉴스에서 찾았어요!');
+      return;
+    }
+
+    // 3단계: Gemini AI API 호출
+    aiLoading.classList.remove('hidden');
+    translateBtn.disabled = true;
+    translateBtn.textContent = '🤖 AI에게 물어보는 중...';
+    resultCard.classList.add('hidden');
+    updateTranslatorCharComment('AI 손자에게 물어보고 있어요...');
+    triggerAvatarBubble('잠깐만요! AI에게 물어볼게요 🤖');
+
+    try {
+      const aiAnswer = await callGeminiAPI(query);
+      resultWord.textContent = `"${query}"`;
+      resultMean.textContent = aiAnswer;
+      lastTranslatedText = aiAnswer;
+      sourceBadge.textContent = '🤖 AI 번역';
+      sourceBadge.className = 'result-badge badge-ai';
+      csvRefBox.classList.add('hidden');
+
+      popResult(resultCard);
+      updateTranslatorCharComment('AI가 찾아드렸어요! 🔊 버튼을 눌러보세요!');
+      triggerAvatarBubble('AI 번역 완료! 🔊 버튼을 눌러보세요.');
+    } catch (err) {
+      console.error('Gemini API 오류:', err);
+      const fallbackMsg = `할머니, 할아버지! 죄송해요, 지금 AI가 잠시 쉬고 있어요. "${query}"는 제가 아직 배우지 못한 단어예요. 나중에 다시 시도해 주세요!`;
+      resultWord.textContent = `"${query}"`;
+      resultMean.textContent = fallbackMsg;
+      lastTranslatedText = fallbackMsg;
+      sourceBadge.textContent = '⚠️ 잠시 오류';
+      sourceBadge.className = 'result-badge badge-error';
+      csvRefBox.classList.add('hidden');
+      popResult(resultCard);
+      updateTranslatorCharComment('AI가 잠시 쉬고 있어요. 나중에 다시 해주세요!');
+    } finally {
+      aiLoading.classList.add('hidden');
+      translateBtn.disabled = false;
+      translateBtn.textContent = '🔍 번역하기';
+    }
+  }
+
+  function popResult(card) {
+    card.classList.remove('hidden');
+    card.classList.add('result-appear');
+    setTimeout(() => card.classList.remove('result-appear'), 700);
+  }
+
+  function resetTranslatorResult() {
+    document.getElementById('translator-result-card').classList.add('hidden');
+    document.getElementById('ai-loading').classList.add('hidden');
+    const inp = document.getElementById('translator-input');
+    if (inp) inp.value = '';
+    const btn = document.getElementById('translate-btn');
+    if (btn) { btn.disabled = false; btn.textContent = '🔍 번역하기'; }
+    updateTranslatorCharComment('단어를 입력하거나 말씀해 주세요!');
+    lastTranslatedText = '';
+  }
+
+  function updateTranslatorCharComment(text) {
+    const el = document.getElementById('translator-char-comment');
+    if (el) el.textContent = text;
+  }
+
+  function replayTTS() {
+    if (lastTranslatedText) speakGuideline(lastTranslatedText);
+  }
+
+  // =============================================
+  // 사용법 가이드 데이터
+  // =============================================
+  const guideDatabase = {
+    '키오스크': {
+      icon: '🖥️', appName: '무인 주문 기계 (키오스크)',
+      intro: '식당, 카페, 패스트푸드점에서 직접 주문하는 기계예요. 차근차근 따라해보세요!',
+      steps: [
+        { num:1, title:'화면을 손가락으로 살짝 터치하세요', desc:'화면에 손가락을 가볍게 대면 주문 화면이 열려요.' },
+        { num:2, title:'먹고 싶은 메뉴 사진을 누르세요', desc:'원하는 음식 사진을 누르면 선택돼요. 실수했을 땐 "취소" 버튼을 누르면 돼요.' },
+        { num:3, title:'"담기" 또는 "추가" 버튼을 눌러요', desc:'선택한 메뉴가 주문 목록에 들어가요. 더 주문하려면 2단계를 반복하세요.' },
+        { num:4, title:'주문 목록 확인 후 "결제"를 누르세요', desc:'총 금액을 확인하고 "결제하기" 버튼을 누르세요.' },
+        { num:5, title:'카드를 넣거나 대세요', desc:'신용카드나 체크카드를 투입구에 넣거나, 단말기에 살짝 대면 결제 완료!' },
+      ],
+      warnings: [
+        '실수로 잘못 눌렀을 때는 "취소" 버튼을 누르시면 돼요.',
+        '결제 완료 후 번호표(영수증)가 나와요. 번호가 불릴 때까지 기다리세요.',
+        '화면이 안 보이거나 어려우시면 직원에게 도움을 요청하세요. 전혀 부끄럽지 않아요!',
+        '카드를 기계에 두고 나오지 않도록 꼭 챙기세요.',
+      ]
+    },
+    '등본': {
+      icon: '📄', appName: '정부24 앱 (주민등록등본 발급)',
+      intro: '스마트폰으로 집에서 편하게 주민등록등본을 발급받을 수 있어요!',
+      steps: [
+        { num:1, title:'"정부24" 앱을 열어주세요', desc:'스마트폰에서 파란색 "정부24" 앱 아이콘을 찾아서 누르세요.' },
+        { num:2, title:'로그인을 해주세요', desc:'"간편인증(카카오·네이버)" 또는 "공동인증서"로 로그인해요.' },
+        { num:3, title:'검색창에 "주민등록등본"을 입력하세요', desc:'상단 검색창을 누르고 "주민등록등본"을 타이핑하세요.' },
+        { num:4, title:'"신청하기" 버튼을 눌러주세요', desc:'주민등록등본 항목 옆 "신청하기" 버튼을 눌러요.' },
+        { num:5, title:'용도 선택 후 "신청" 완료!', desc:'제출 용도를 고르고 "신청" 버튼을 누르면 PDF로 다운로드돼요.' },
+      ],
+      warnings: [
+        '공동인증서(공인인증서) 비밀번호를 미리 알고 계셔야 해요.',
+        '무료로 발급되지만 프린터가 필요해요. 없으면 가까운 주민센터를 방문하세요.',
+        '개인 정보가 담긴 서류이니 다운로드 후 다른 사람에게 함부로 보내지 마세요!',
+      ]
+    },
+    'atm': {
+      icon: '🏧', appName: '은행 ATM 현금 인출기',
+      intro: '은행 ATM에서 현금을 찾는 방법을 알려드릴게요. 천천히 따라오세요!',
+      steps: [
+        { num:1, title:'카드를 카드 투입구에 넣으세요', desc:'카드 앞면(이름이 있는 면)이 위로 가도록 넣어주세요.' },
+        { num:2, title:'"출금" 또는 "현금인출"을 누르세요', desc:'화면에서 원하는 서비스를 선택해요.' },
+        { num:3, title:'비밀번호 4자리를 누르세요', desc:'주변을 한 번 살피고, 조용히 비밀번호를 입력하세요.' },
+        { num:4, title:'찾을 금액을 선택하거나 입력하세요', desc:'"10만원", "5만원" 버튼을 누르거나 직접 금액을 입력하세요.' },
+        { num:5, title:'돈과 카드를 꼭 챙기세요', desc:'현금이 나오면 바로 챙기고, 카드도 잊지 말고 빼세요!' },
+      ],
+      warnings: [
+        '주변에 수상한 사람이 있으면 잠시 기다렸다가 이용하세요.',
+        '카드를 기계에 두고 나오지 않도록 조심하세요!',
+        '비밀번호는 절대 다른 사람에게 알려주면 안 돼요.',
+        '내 은행 ATM을 이용하면 수수료가 없어요.',
+        '화면이 꺼지거나 이상하면 카드를 빼고 은행에 전화하세요.',
+      ]
+    },
+    '식당': {
+      icon: '🍽️', appName: '네이버 지도 / 카카오맵 예약',
+      intro: '스마트폰으로 식당을 미리 예약하는 방법이에요!',
+      steps: [
+        { num:1, title:'"네이버" 앱에서 식당 이름을 검색하세요', desc:'검색창에 가고 싶은 식당 이름을 적으세요.' },
+        { num:2, title:'"예약" 버튼을 누르세요', desc:'"예약하기" 또는 "웨이팅" 버튼을 찾아 누르세요.' },
+        { num:3, title:'방문 날짜와 인원을 선택하세요', desc:'언제, 몇 명이 갈지 선택 버튼을 눌러 고르세요.' },
+        { num:4, title:'연락처와 이름을 입력하세요', desc:'예약자 이름과 휴대폰 번호를 적어주세요.' },
+        { num:5, title:'"예약 완료" 버튼을 누르세요', desc:'문자로 예약 확인 메시지가 와요. 확인하고 저장해두세요.' },
+      ],
+      warnings: [
+        '예약 후 못 가게 되면 꼭 취소 연락을 해주세요!',
+        '예약 확인 문자가 안 오면 식당에 직접 전화해서 확인하세요.',
+      ]
+    },
+    '카카오': {
+      icon: '💬', appName: '카카오톡 메시지 보내기',
+      intro: '카카오톡으로 가족, 친구와 메시지를 주고받는 방법이에요!',
+      steps: [
+        { num:1, title:'노란색 카카오톡 앱을 열어주세요', desc:'스마트폰에서 노란 말풍선 모양 카카오톡을 누르세요.' },
+        { num:2, title:'아래 메뉴에서 "채팅"을 누르세요', desc:'화면 아래쪽 말풍선 모양 "채팅" 버튼을 누르세요.' },
+        { num:3, title:'대화하고 싶은 사람 이름을 누르세요', desc:'목록에서 자녀나 손주 이름을 찾아 누르세요.' },
+        { num:4, title:'아래 입력창에 글을 쓰세요', desc:'화면 아래 흰 칸을 누르고 하고 싶은 말을 적으세요.' },
+        { num:5, title:'화살표(▶) 버튼을 눌러 보내세요', desc:'글을 다 쓰면 오른쪽 파란 화살표 버튼을 누르면 전송돼요!' },
+      ],
+      warnings: [
+        '모르는 사람이 보낸 링크(파란 글씨)는 절대 누르지 마세요!',
+        '돈을 요구하는 메시지는 무조건 보이스피싱이에요. 자녀에게 먼저 전화하세요.',
+        '카카오톡에서 은행이나 경찰이라며 연락이 오면 무조건 의심하세요.',
+      ]
+    },
+    '배달': {
+      icon: '🛵', appName: '배달의민족 / 쿠팡이츠 앱',
+      intro: '스마트폰으로 집에서 편하게 음식을 시키는 방법이에요!',
+      steps: [
+        { num:1, title:'"배달의민족" 앱을 열어주세요', desc:'하얀 배경에 치킨 그림이 있는 앱을 누르세요.' },
+        { num:2, title:'먹고 싶은 음식 종류를 고르세요', desc:'"치킨", "중식", "한식" 등 원하는 카테고리를 누르세요.' },
+        { num:3, title:'식당을 선택하세요', desc:'목록에서 마음에 드는 식당 이름을 눌러요.' },
+        { num:4, title:'메뉴를 고르고 "장바구니에 담기"를 누르세요', desc:'원하는 메뉴를 누르고 수량을 선택한 후 담아요.' },
+        { num:5, title:'"주문하기"를 눌러 결제를 완료하세요', desc:'주소와 결제 방법을 확인하고 "주문하기"를 누르면 돼요.' },
+      ],
+      warnings: [
+        '배달 주소가 정확한지 꼭 확인하세요!',
+        '최소 주문 금액이 있을 수 있어요.',
+        '배달비가 추가돼요. 결제 전 총액을 확인하세요.',
+      ]
+    },
+  };
+
+  function searchGuide(kw) {
+    const inp = document.getElementById('guide-input');
+    if (inp) inp.value = kw;
+    doGuideSearch(kw);
+  }
+
+  function doGuideSearch(override) {
+    const query = normalizeKey(override || document.getElementById('guide-input')?.value || '');
+    const resultEl   = document.getElementById('guide-result');
+    const notFoundEl = document.getElementById('guide-not-found');
+
+    let match = null;
+    for (const key of Object.keys(guideDatabase)) {
+      const nk = normalizeKey(key);
+      if (query.includes(nk) || nk.includes(query)) { match = guideDatabase[key]; break; }
+    }
+
+    if (!match) {
+      resultEl.classList.add('hidden');
+      notFoundEl.classList.remove('hidden');
+      return;
+    }
+    notFoundEl.classList.add('hidden');
+
+    document.getElementById('guide-app-badge').innerHTML =
+      `<span class="guide-app-icon">${match.icon}</span><span class="guide-app-name">${match.appName}</span>`;
+    document.getElementById('guide-intro-text').textContent = match.intro;
+
+    document.getElementById('guide-steps-list').innerHTML = match.steps.map(s => `
+      <div class="guide-step-item">
+        <div class="guide-step-num">${s.num}단계</div>
+        <div class="guide-step-body">
+          <div class="guide-step-title">${s.title}</div>
+          <div class="guide-step-desc">${s.desc}</div>
+          <div class="guide-step-img-wrap">
+            <div class="guide-step-img-placeholder">
+              <span class="guide-img-icon">📱</span>
+              <span class="guide-img-label">${s.num}단계 화면 예시</span>
+            </div>
+          </div>
+        </div>
+      </div>`).join('');
+
+    document.getElementById('guide-warnings-list').innerHTML = match.warnings.map(w => `
+      <div class="guide-warning-item"><span class="warn-dot">⚠️</span><span>${w}</span></div>`).join('');
+
+    resultEl.classList.remove('hidden');
+    resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    speakGuideline(`${match.appName} 사용법이에요. ${match.intro}`);
+    triggerAvatarBubble(`${match.icon} 사용법이에요!`);
+  }
+
+  // =============================================
+  // 사진 / 카메라
+  // =============================================
+  function handlePhotoUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const area = document.getElementById('photo-preview-area');
+      area.classList.remove('hidden');
+      area.innerHTML = `
+        <div class="photo-preview-wrapper">
+          <img src="${e.target.result}" alt="업로드된 사진" class="photo-preview-img">
+          <p class="photo-preview-label">✅ 사진이 추가되었어요! AI 분석 기능은 준비 중이에요.</p>
+          <button class="action-btn" onclick="clearPhoto()" style="margin-top:0.8rem;padding:0.6rem 1rem;">🗑️ 사진 지우기</button>
+        </div>`;
+      speakGuideline('사진이 추가되었어요, 할머니, 할아버지! 감사합니다.');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearPhoto() {
+    document.getElementById('photo-preview-area').classList.add('hidden');
+    document.getElementById('photo-preview-area').innerHTML = '';
+    document.getElementById('photo-upload').value = '';
+  }
+
+  async function openCamera() {
+    const area  = document.getElementById('camera-area');
+    const video = document.getElementById('camera-video');
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+      video.srcObject = cameraStream;
+      area.classList.remove('hidden');
+      speakGuideline('카메라가 켜졌어요. 촬영 버튼을 눌러 사진을 찍어보세요.');
+    } catch (e) {
+      alert('할머니, 할아버지! 카메라 사용 권한이 필요해요. 브라우저에서 카메라 허용을 눌러주세요.');
+    }
+  }
+
+  function capturePhoto() {
+    const video  = document.getElementById('camera-video');
+    const canvas = document.getElementById('camera-canvas');
+    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const imgData = canvas.toDataURL('image/jpeg');
+    closeCamera();
+    const area = document.getElementById('photo-preview-area');
+    area.classList.remove('hidden');
+    area.innerHTML = `
+      <div class="photo-preview-wrapper">
+        <img src="${imgData}" alt="촬영된 사진" class="photo-preview-img">
+        <p class="photo-preview-label">📸 사진이 촬영되었어요! AI 분석 기능은 준비 중이에요.</p>
+        <button class="action-btn" onclick="clearPhoto()" style="margin-top:0.8rem;padding:0.6rem 1rem;">🗑️ 사진 지우기</button>
+      </div>`;
+    speakGuideline('사진이 촬영되었어요!');
+  }
+
+  function closeCamera() {
+    if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+    document.getElementById('camera-area').classList.add('hidden');
+  }
+
+  // =============================================
+  // 보이스피싱 검출기
+  // =============================================
+  const PHISHING_KW = ['계좌','이체','송금','비밀번호','인증번호','검찰','경찰','세금환급',
+    '당첨','무료','클릭','링크','대출','신용카드','카드정보','주민번호','개인정보','긴급','납부'];
+
+  function doPhishingCheck() {
+    const text = (document.getElementById('phishing-input').value || '').trim();
+    if (!text) { alert('할머니, 할아버지! 검사할 문자 내용을 먼저 입력해 주세요.'); return; }
+    const found = PHISHING_KW.filter(kw => text.includes(kw));
+    const lvl = found.length === 0 ? 'safe' : found.length <= 2 ? 'caution' : 'danger';
+    const resultEl = document.getElementById('phishing-result');
+    let html = '';
+    if (lvl === 'safe') {
+      html = `<div class="phishing-safe">✅ <strong>비교적 안전해 보여요.</strong><br>그래도 모르는 링크는 절대 누르지 마세요!</div>`;
+      speakGuideline('검사 결과, 비교적 안전해 보여요. 하지만 모르는 링크는 절대 누르지 마세요.');
+    } else if (lvl === 'caution') {
+      html = `<div class="phishing-caution">⚠️ <strong>주의가 필요해요!</strong><br>위험 단어: ${found.join(', ')}<br>자녀나 가족과 꼭 상의해 보세요.</div>`;
+      speakGuideline('주의가 필요해요! 자녀나 가족과 먼저 상의해 보세요.');
+    } else {
+      html = `<div class="phishing-danger">🚨 <strong>매우 위험한 문자예요! 절대 응하지 마세요!</strong><br>위험 단어: ${found.join(', ')}<br>즉시 112 또는 자녀에게 연락하세요!</div>`;
+      speakGuideline('매우 위험한 문자예요! 절대 응하지 마시고 112에 신고하거나 자녀에게 연락하세요!');
+    }
+    resultEl.innerHTML = html;
+    resultEl.classList.remove('hidden');
+  }
+
+  // =============================================
+  // STT - 음성 인식
+  // =============================================
+  function startSpeechRecognition() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert('할머니, 할아버지! 이 브라우저에서는 음성 인식이 지원되지 않아요.\n크롬(Chrome) 브라우저를 사용해 주세요.'); return; }
+    if (isListening) { recognition.stop(); return; }
+
+    recognition = new SR();
+    recognition.lang = 'ko-KR';
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    recognition.continuous = false;
+
+    recognition.onstart  = () => { isListening = true; setListeningUI(true); triggerAvatarBubble('듣고 있어요! 말씀해 주세요 🎙️'); updateTranslatorCharComment('귀 기울여 듣고 있어요...'); };
+    recognition.onresult = e => { document.getElementById('translator-input').value = Array.from(e.results).map(r => r[0].transcript).join(''); };
+    recognition.onend    = () => {
+      isListening = false; setListeningUI(false);
+      const v = (document.getElementById('translator-input').value || '').trim();
+      if (v) { updateTranslatorCharComment('번역하기를 눌러주세요!'); triggerAvatarBubble('음성 인식 완료! 번역하기를 눌러보세요.'); }
+      else   { updateTranslatorCharComment('단어를 입력하거나 말씀해 주세요!'); }
+    };
+    recognition.onerror  = ev => {
+      isListening = false; setListeningUI(false);
+      let msg = '음성 인식 중 오류가 발생했어요.';
+      if (ev.error === 'no-speech')   msg = '말씀을 듣지 못했어요. 다시 시도해 주세요.';
+      if (ev.error === 'not-allowed') msg = '마이크 사용 권한이 필요해요. 브라우저에서 허용해 주세요.';
+      speakGuideline(msg); triggerAvatarBubble('다시 한 번 시도해 볼까요?'); updateTranslatorCharComment('다시 한 번 시도해 볼까요?');
+    };
+    recognition.start();
+  }
+
+  function setListeningUI(on) {
+    const micBtn   = document.getElementById('mic-btn');
+    const micLabel = document.getElementById('mic-btn-label');
+    const sttSt    = document.getElementById('stt-status');
+    const sttTxt   = document.getElementById('stt-status-text');
+    const avatars  = document.querySelectorAll('.avatar-img-wrapper');
+    if (on) {
+      micBtn.classList.add('mic-active');
+      micLabel.textContent = '멈추기';
+      sttSt.classList.remove('hidden');
+      sttTxt.textContent = '듣고 있어요... 말씀해 주세요!';
+      avatars.forEach(a => { a.classList.add('listening'); a.classList.remove('talking','smiling'); });
+    } else {
+      micBtn.classList.remove('mic-active');
+      micLabel.textContent = '말하기';
+      sttSt.classList.add('hidden');
+      avatars.forEach(a => a.classList.remove('listening'));
+    }
+  }
+
+  // =============================================
+  // 설정 모달
+  // =============================================
+  const modal    = document.getElementById('settings-modal');
+  const openBtn  = document.getElementById('settings-toggle-btn');
+  const closeBtn = document.getElementById('settings-close-btn');
+  const overlay  = document.getElementById('settings-overlay');
+
+  openBtn.addEventListener('click', () => { modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); triggerAvatarBubble('설정을 변경해 보세요.'); });
+  function closeModal() { modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', closeModal);
+
+  function updateFontScale(val) {
+    fontScaleLevel = val;
+    document.documentElement.style.setProperty('--font-scale', scaleValues[val] || 1.0);
+    const pb = document.getElementById('font-preview-box');
+    if (pb) pb.innerText = scaleTexts[val];
+    localStorage.setItem('font-scale', val);
+  }
+
+  function setTheme(theme) {
+    const body = document.body;
+    const lb = document.getElementById('theme-light-btn');
+    const db = document.getElementById('theme-dark-btn');
+    if (theme === 'dark') {
+      body.classList.remove('theme-light'); body.classList.add('theme-dark');
+      db.classList.add('active'); lb.classList.remove('active');
+      triggerAvatarBubble('눈 편한 화면으로 변경!');
+    } else {
+      body.classList.remove('theme-dark'); body.classList.add('theme-light');
+      lb.classList.add('active'); db.classList.remove('active');
+      triggerAvatarBubble('화사한 화면으로 변경!');
+    }
+  }
+
+  function changeAvatarGender(gender) {
+    avatarGender = gender;
+    localStorage.setItem('avatar-gender', gender);
+    if (gender === 'granddaughter') {
+      triggerAvatarBubble('상냥한 손녀로 변경 완료!');
+      speakGuideline('안녕하세요! 저는 할머니, 할아버지를 돕는 손녀 비서예요.');
+    } else {
+      triggerAvatarBubble('든든한 손자로 변경 완료!');
+      speakGuideline('안녕하세요! 저는 할머니, 할아버지를 돕는 손자 비서예요.');
+    }
+  }
+
+  function updateVoiceSupport(checked) {
+    voiceEnabled = checked;
+    localStorage.setItem('voice-support', checked ? 'true' : 'false');
+    if (checked) speakGuideline('음성 안내 서비스가 켜졌습니다.');
+    else window.speechSynthesis?.cancel();
+  }
+
+  // =============================================
+  // TTS - Pitch 1.4, Rate 0.9 어린이 음성
+  // =============================================
+  function speakGuideline(text) {
+    if (!voiceEnabled || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = 'ko-KR';
+    const voices   = window.speechSynthesis.getVoices();
+    const koVoices = voices.filter(v => v.lang === 'ko-KR' || v.lang.startsWith('ko'));
+    if (avatarGender === 'granddaughter') {
+      let v = koVoices.find(v => /yuna|female|woman|sun.hi|heami/i.test(v.name));
+      if (!v && koVoices.length) v = koVoices[0];
+      if (v) utt.voice = v;
+      utt.pitch = 1.4;
+      utt.rate  = 0.9;
+    } else {
+      let v = koVoices.find(v => /minjun|male|man/i.test(v.name));
+      if (!v && koVoices.length) v = koVoices.find(vv => !/yuna|sun.hi/i.test(vv.name)) || koVoices[0];
+      if (v) utt.voice = v;
+      utt.pitch = 1.4;
+      utt.rate  = 0.9;
+    }
+    const avatars = document.querySelectorAll('.avatar-img-wrapper');
+    avatars.forEach(a => { a.classList.add('talking'); a.classList.remove('smiling','listening'); });
+    utt.onend = () => {
+      avatars.forEach(a => {
+        a.classList.remove('talking'); a.classList.add('smiling');
+        setTimeout(() => a.classList.remove('smiling'), 1800);
+      });
+    };
+    utt.onerror = () => avatars.forEach(a => a.classList.remove('talking'));
+    window.speechSynthesis.speak(utt);
+  }
+
+  // =============================================
+  // 말풍선 / 상호작용
+  // =============================================
+  function triggerAvatarBubble(msg, dur = 3200) {
+    const bubble = document.getElementById('avatar-speech-bubble');
+    if (!bubble) return;
+    bubble.querySelector('span').innerText = msg;
+    bubble.classList.add('visible');
+    setTimeout(() => bubble.classList.remove('visible'), dur);
+  }
+
+  function triggerAvatarInteraction() {
+    const msgs = [
+      '할머니, 할아버지! 부르셨나요? 언제든 눌러주세요.',
+      '글씨 크기가 마음에 안 드시면 설정에서 조절해 보세요.',
+      '의심스러운 문자는 보이스피싱 검출기에 넣어보세요.',
+      '카카오톡·키오스크 사용법은 사용법 가이드에서 확인하세요!',
+      '모르는 요즘 단어가 있으면 AI 번역기에 물어보세요!',
+    ];
+    const text = msgs[Math.floor(Math.random() * msgs.length)];
+    triggerAvatarBubble(text, 4500);
+    speakGuideline(text);
+    document.querySelectorAll('.avatar-img-wrapper').forEach(a => {
+      a.classList.add('listening');
+      setTimeout(() => a.classList.remove('listening'), 2000);
+    });
+  }
+
+  function triggerAvatarSpeech(action) {
+    if (action === '환영') {
+      speakGuideline('안녕하세요! 저는 할머니, 할아버지의 스마트폰 도우미 쏜자입니다!');
+      triggerAvatarBubble('도움이 필요하신가요?');
+    }
+  }
+  </script>
+</body>
+</html>
