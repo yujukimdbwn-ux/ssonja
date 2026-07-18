@@ -1114,3 +1114,134 @@ button { font-family: inherit; cursor: pointer; }
   .result-header { flex-direction: column; align-items: flex-start; }
   .ai-loading-inner { font-size: .95rem; padding: .9rem 1.2rem; }
 }
+
+/* ==================================================
+   16. High-Fidelity Mockup Common Classes
+   ================================================== */
+.hifi-mockup {
+  position: relative;
+  width: 240px;
+  height: 400px;
+  background: #fff;
+  border: 6px solid #111;
+  border-radius: 28px;
+  margin: 1rem auto;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  font-family: 'Noto Sans KR', sans-serif;
+  text-align: left;
+}
+.hifi-notch {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 80px; height: 18px;
+  background: #111;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  z-index: 100;
+}
+.hifi-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 12px 10px;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #000;
+  z-index: 50;
+}
+.hifi-topbar .title { flex: 1; text-align: left; margin-left: 8px; }
+.hifi-topbar .icons { font-size: 1rem; letter-spacing: 2px; }
+
+.hifi-content {
+  flex: 1;
+  overflow-y: hidden;
+  background: #fff;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.hifi-bottombar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid #E5E7EB;
+  background: #fff;
+  font-size: 1.3rem;
+  color: #9CA3AF;
+  z-index: 50;
+}
+.hifi-bottombar span.active { color: #111; }
+
+/* Themes */
+.theme-kakao .hifi-topbar { background: #FEE500; border-bottom: none; }
+.theme-kakao .hifi-content { background: #B2C7D9; }
+.theme-kakao .hifi-bottombar { background: #F6F6F6; }
+
+.theme-baemin .hifi-topbar { background: #2AC1BC; color: #fff; border-bottom: none; }
+.theme-baemin .hifi-bottombar { background: #fff; border-top: 1px solid #eee; }
+
+.theme-gov .hifi-topbar { background: #fff; border-bottom: 2px solid #2563EB; color: #2563EB; }
+.theme-gov .hifi-bottombar { display: none; }
+
+.theme-atm .hifi-topbar { background: #16A085; color: #fff; }
+.theme-atm .hifi-content { background: #E8F8F5; }
+.theme-atm .hifi-bottombar { display: none; }
+
+.theme-naver .hifi-topbar { background: #03C75A; color: #fff; }
+.theme-naver .hifi-bottombar { display: none; }
+
+.theme-kiosk .hifi-topbar { background: #E74C3C; color: #fff; }
+.theme-kiosk .hifi-content { background: #FDF2E9; }
+
+/* Components */
+.hifi-list { display: flex; flex-direction: column; width: 100%; }
+.hifi-list-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; background: #fff; gap: 12px; }
+.hifi-avatar { width: 36px; height: 36px; background: #ddd; border-radius: 40%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+.hifi-text-col { flex: 1; display: flex; flex-direction: column; }
+.hifi-text-title { font-size: 0.9rem; font-weight: 900; color: #111; margin-bottom: 2px; }
+.hifi-text-desc { font-size: 0.75rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+
+.hifi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px; }
+.hifi-grid-item { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; background: #fff; border-radius: 12px; border: 1px solid #eee; font-size: 0.75rem; font-weight: 700; color:#333; text-align: center; }
+.hifi-grid-item .emoji { font-size: 1.6rem; }
+
+.hifi-chat-bubble { max-width: 75%; padding: 8px 12px; border-radius: 12px; font-size: 0.85rem; margin: 8px 12px; position: relative; font-weight: 700; }
+.hifi-chat-bubble.left { align-self: flex-start; background: #fff; border-top-left-radius: 2px; }
+.hifi-chat-bubble.right { align-self: flex-end; background: #FEE500; border-top-right-radius: 2px; }
+
+.hifi-input-bar { display: flex; padding: 8px 12px; background: #fff; gap: 8px; border-top: 1px solid #ccc; align-items: center; margin-top: auto; }
+.hifi-input-field { flex: 1; background: #F6F6F6; border-radius: 20px; padding: 8px 12px; font-size: 0.8rem; color: #999; }
+.hifi-input-send { width: 32px; height: 32px; background: #FEE500; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+
+.hifi-card { background: #fff; margin: 12px; border-radius: 12px; padding: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; }
+.hifi-card-title { font-size: 0.95rem; font-weight: 900; margin-bottom: 6px; }
+.hifi-card-subtitle { font-size: 0.75rem; color: #666; margin-bottom: 10px; }
+.hifi-btn { background: #2AC1BC; color: #fff; border-radius: 8px; padding: 12px; text-align: center; font-weight: 900; font-size: 0.9rem; margin: auto 12px 12px 12px; cursor: pointer; }
+.hifi-btn.btn-kakao { background: #FEE500; color: #111; }
+.hifi-btn.btn-gov { background: #2563EB; color: #fff; }
+.hifi-btn.btn-kiosk { background: #E74C3C; color: #fff; margin: 0; border-radius: 0; padding: 16px; font-size: 1rem; }
+.hifi-btn.btn-atm { background: #16A085; color: #fff; margin: 12px; }
+
+/* Target Pulse Animation */
+.hifi-target { position: relative; z-index: 10; }
+.hifi-target::after {
+  content: '';
+  position: absolute;
+  top: -4px; left: -4px; right: -4px; bottom: -4px;
+  border: 3px solid #E74C3C;
+  border-radius: inherit;
+  animation: target-pulse 1s infinite alternate;
+  pointer-events: none;
+}
+.hifi-target-sm::after { top: -2px; left: -2px; right: -2px; bottom: -2px; border-width: 2px; }
+
+@keyframes target-pulse { 
+  0% { opacity: 0.4; transform: scale(1); } 
+  100% { opacity: 1; transform: scale(1.05); } 
+}
