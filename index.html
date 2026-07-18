@@ -195,35 +195,45 @@
           <button class="topic-chip" onclick="searchGuide('식당')">🍽️ 식당 예약</button>
           <button class="topic-chip" onclick="searchGuide('카카오')">💬 카카오톡</button>
           <button class="topic-chip" onclick="searchGuide('배달')">🛵 배달 주문</button>
+          <button class="topic-chip" onclick="toggleGuideSearch()" style="background:#fff3e0; border-color:#ffcc80;">✨ 기타...</button>
         </div>
 
-        <div class="guide-input-row">
-          <input type="text" id="guide-input" class="app-input guide-input"
-            placeholder="직접 검색하세요 (예: 키오스크, ATM, 등본...)">
-          <button class="action-btn guide-search-btn" onclick="doGuideSearch()">🔍 찾기</button>
-        </div>
-
-        <div class="guide-media-section">
-          <p class="guide-media-label">📷 화면을 사진으로 찍어 보내주셔도 돼요!</p>
-          <div class="guide-media-btns">
-            <label class="media-btn" for="photo-upload" role="button" tabindex="0">
-              <input type="file" id="photo-upload" accept="image/*" style="display:none;" onchange="handlePhotoUpload(this)">
-              <span class="media-btn-icon">🖼️</span>
-              <span class="media-btn-text">사진 추가</span>
-            </label>
-            <button class="media-btn" onclick="openCamera()">
-              <span class="media-btn-icon">📸</span>
-              <span class="media-btn-text">카메라 켜기</span>
+        <div id="guide-advanced-search" class="hidden" style="margin-top: 15px; border-top: 1px dashed #e0e0e0; padding-top: 15px;">
+          <div class="guide-input-row">
+            <input type="text" id="guide-input" class="app-input guide-input"
+              placeholder="직접 검색하세요 (예: 당근마켓, 토스 송금...)">
+            <button id="guide-mic-btn" class="mic-btn" onclick="startGuideSpeechRecognition()" aria-label="가이드 음성 인식 시작" style="margin-right: 5px;">
+              <span class="mic-icon">🎤</span>
             </button>
+            <button class="action-btn guide-search-btn" onclick="doGuideSearch()">🔍 찾기</button>
           </div>
-          <div id="photo-preview-area" class="photo-preview-area hidden"></div>
-          <div id="camera-area" class="camera-area hidden">
-            <video id="camera-video" autoplay playsinline class="camera-video"></video>
-            <div class="camera-controls">
-              <button class="action-btn" onclick="capturePhoto()">📸 촬영하기</button>
-              <button class="action-btn color-alert" onclick="closeCamera()">✕ 카메라 끄기</button>
+          <div id="guide-stt-status" class="stt-status hidden">
+            <span class="stt-dot"></span>
+            <span id="guide-stt-status-text">듣고 있어요... 말씀해 주세요!</span>
+          </div>
+
+          <div class="guide-media-section">
+            <p class="guide-media-label">📷 화면을 사진으로 찍어 보내주셔도 돼요!</p>
+            <div class="guide-media-btns">
+              <label class="media-btn" for="photo-upload" role="button" tabindex="0">
+                <input type="file" id="photo-upload" accept="image/*" style="display:none;" onchange="handlePhotoUpload(this)">
+                <span class="media-btn-icon">🖼️</span>
+                <span class="media-btn-text">사진 추가</span>
+              </label>
+              <button class="media-btn" onclick="openCamera()">
+                <span class="media-btn-icon">📸</span>
+                <span class="media-btn-text">카메라 켜기</span>
+              </button>
             </div>
-            <canvas id="camera-canvas" style="display:none;"></canvas>
+            <div id="photo-preview-area" class="photo-preview-area hidden"></div>
+            <div id="camera-area" class="camera-area hidden">
+              <video id="camera-video" autoplay playsinline class="camera-video"></video>
+              <div class="camera-controls">
+                <button class="action-btn" onclick="capturePhoto()">📸 촬영하기</button>
+                <button class="action-btn color-alert" onclick="closeCamera()">✕ 카메라 끄기</button>
+              </div>
+              <canvas id="camera-canvas" style="display:none;"></canvas>
+            </div>
           </div>
         </div>
       </div>
@@ -1546,6 +1556,72 @@
       sttSt.classList.add('hidden');
       avatars.forEach(a => a.classList.remove('listening'));
     }
+  }
+
+  // =============================================
+  // 가이드 검색 전용 STT 및 UI 토글
+  // =============================================
+  function toggleGuideSearch() {
+    const searchArea = document.getElementById('guide-advanced-search');
+    if (searchArea.classList.contains('hidden')) {
+      searchArea.classList.remove('hidden');
+      triggerAvatarBubble('궁금하신 점을 검색창에 입력하거나 마이크 버튼을 눌러 말씀해 주세요.');
+    } else {
+      searchArea.classList.add('hidden');
+    }
+  }
+
+  let guideRecognition = null;
+  let isGuideListening = false;
+
+  function startGuideSpeechRecognition() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert('할머니, 할아버지! 이 브라우저에서는 음성 인식이 지원되지 않아요.\\n크롬(Chrome) 브라우저를 사용해 주세요.'); return; }
+    
+    if (isGuideListening) {
+      if(guideRecognition) guideRecognition.stop();
+      return;
+    }
+
+    guideRecognition = new SR();
+    guideRecognition.lang = 'ko-KR';
+    guideRecognition.interimResults = true;
+    guideRecognition.maxAlternatives = 1;
+    guideRecognition.continuous = false;
+
+    guideRecognition.onstart  = () => { 
+      isGuideListening = true; 
+      document.getElementById('guide-mic-btn').classList.add('mic-active');
+      document.getElementById('guide-stt-status').classList.remove('hidden');
+      triggerAvatarBubble('듣고 있어요! 무엇이 궁금하신가요? 🎙️'); 
+    };
+    
+    guideRecognition.onresult = e => { 
+      document.getElementById('guide-input').value = Array.from(e.results).map(r => r[0].transcript).join(''); 
+    };
+    
+    guideRecognition.onend = () => {
+      isGuideListening = false; 
+      document.getElementById('guide-mic-btn').classList.remove('mic-active');
+      document.getElementById('guide-stt-status').classList.add('hidden');
+      const v = (document.getElementById('guide-input').value || '').trim();
+      if (v) { 
+        triggerAvatarBubble('잘 들었어요! 이제 돋보기 버튼을 눌러주세요.'); 
+      }
+    };
+    
+    guideRecognition.onerror = ev => {
+      isGuideListening = false; 
+      document.getElementById('guide-mic-btn').classList.remove('mic-active');
+      document.getElementById('guide-stt-status').classList.add('hidden');
+      let msg = '음성 인식 중 오류가 발생했어요.';
+      if (ev.error === 'no-speech')   msg = '말씀을 듣지 못했어요. 다시 시도해 주세요.';
+      if (ev.error === 'not-allowed') msg = '마이크 사용 권한이 필요해요.';
+      speakGuideline(msg); 
+      triggerAvatarBubble('다시 한 번 시도해 볼까요?');
+    };
+    
+    guideRecognition.start();
   }
 
   // =============================================
