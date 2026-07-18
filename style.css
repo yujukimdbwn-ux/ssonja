@@ -1147,8 +1147,63 @@ button { font-family: inherit; cursor: pointer; }
 /* ==================================================
    15. 반응형
    ================================================== */
-@media (max-width: 500px) {
-  .home-welcome-header { flex-direction: column; text-align: center; }
+@media (max-width: 600px) {
+  :root {
+    --font-size-base: 18px !important; /* Scale down text size on mobile to prevent overflow */
+  }
+  
+  .app-container {
+    padding: 1rem 0.5rem 6rem !important; /* Minimize container padding to expand cards horizontally */
+    border-left: none !important;
+    border-right: none !important;
+    box-shadow: none !important;
+  }
+  
+  .step-item {
+    padding: 1.2rem 1rem !important; /* Minimize card padding to maximize content width */
+    border-radius: 16px !important;
+    gap: 1rem !important;
+  }
+  
+  .step-num {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 1.15rem !important;
+    border-radius: 12px !important;
+  }
+  
+  .step-text {
+    font-size: 1.15rem !important;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+  
+  .screen-content {
+    padding: 1.2rem 1rem !important;
+    border-radius: 16px !important;
+  }
+  
+  .home-welcome-header {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.2rem 1rem !important;
+    border-radius: 16px !important;
+    gap: 0.8rem !important;
+  }
+  
+  .menu-card {
+    padding: 1.2rem 1rem !important;
+    border-radius: 16px !important;
+  }
+  
+  .logo {
+    height: 65px !important;
+  }
+  
+  .logo-img {
+    max-width: 200px !important;
+  }
+
   .translator-input-row { flex-direction: column; }
   .mic-btn { width: 100%; min-height: 65px; flex-direction: row; justify-content: center; }
   .guide-input-row { flex-direction: column; }
