@@ -77,19 +77,16 @@ html { font-size: calc(var(--font-size-base) * var(--font-scale)); }
 body {
   font-family: var(--font-family);
   font-size: 1rem;
-  background-color: var(--bg);
-  background-image: url('background.changer.png');
-  background-repeat: no-repeat;
-  background-position: center top;
-  background-size: 1920px auto;
-  background-attachment: fixed;
+  background: radial-gradient(circle at 50% 50%, #fdfdfa 0%, #f5ebd8 100%);
   color: var(--text);
   line-height: 1.65;
   min-height: 100vh;
   transition: background var(--transition), color var(--transition);
+  position: relative;
+  overflow-x: hidden;
 }
 .theme-dark body {
-  background-image: none !important;
+  background: var(--bg) !important;
 }
 
 button { font-family: inherit; cursor: pointer; }
@@ -1529,5 +1526,158 @@ button { font-family: inherit; cursor: pointer; }
   border-radius: 10px;
   width: 0%;
   transition: width 1s ease-in-out;
+}
+
+/* ==================================================
+   14. 좌우 감성 데코레이션 패널 (데스크톱 전용)
+   ================================================== */
+.decor-panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: calc((100vw - 760px) / 2 - 20px);
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.9;
+  transition: opacity 0.3s;
+}
+
+@media (max-width: 1100px) {
+  .decor-panel { display: none !important; }
+}
+
+.decor-left {
+  left: 20px;
+}
+
+.decor-right {
+  right: 20px;
+}
+
+.decor-item {
+  font-size: 3rem;
+  filter: drop-shadow(2px 4px 8px rgba(92, 75, 55, 0.15));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Clipboard decoration */
+.decor-item.clipboard {
+  width: 140px;
+  background: #c2a683;
+  border: 2px solid #5c4b37;
+  border-radius: 8px;
+  padding: 10px;
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.memo-clip {
+  font-size: 1.5rem;
+  position: absolute;
+  top: -15px;
+  z-index: 2;
+}
+.memo-note {
+  width: 100%;
+  background: #fff9db;
+  border: 1px dashed #8c7355;
+  border-radius: 4px;
+  padding: 8px 4px;
+  font-family: 'Gowun Batang', serif;
+  font-size: 13px;
+  font-weight: bold;
+  text-align: center;
+  color: #5c4b37;
+  line-height: 1.4;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Polaroid decoration */
+.decor-item.polaroid {
+  background: #fff;
+  border: 1px solid #d4c5b3;
+  padding: 8px 8px 24px 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transform: rotate(5deg);
+  position: relative;
+}
+.decor-item.polaroid::before {
+  content: "🏞️";
+  font-size: 2.2rem;
+  background: #eaf4f4;
+  display: block;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+/* Floral climbing ivy decorations on cards in Light Theme */
+.theme-light .home-welcome-header {
+  position: relative;
+}
+.theme-light .home-welcome-header::before {
+  content: "🌿";
+  position: absolute;
+  top: -18px;
+  left: 30px;
+  font-size: 1.8rem;
+  filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.1));
+}
+.theme-light .home-welcome-header::after {
+  content: "🌸";
+  position: absolute;
+  top: -10px;
+  right: 40px;
+  font-size: 1.2rem;
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.1));
+}
+
+.theme-light .menu-card:nth-child(1) {
+  position: relative;
+}
+.theme-light .menu-card:nth-child(1)::before {
+  content: "🌿";
+  position: absolute;
+  top: -18px;
+  left: 20px;
+  font-size: 1.8rem;
+  filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.1));
+}
+.theme-light .menu-card:nth-child(1)::after {
+  content: "🌼";
+  position: absolute;
+  bottom: -12px;
+  right: 30px;
+  font-size: 1.2rem;
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.1));
+}
+
+.theme-light .menu-card:nth-child(2) {
+  position: relative;
+}
+.theme-light .menu-card:nth-child(2)::before {
+  content: "🍀";
+  position: absolute;
+  bottom: -15px;
+  left: 40px;
+  font-size: 1.4rem;
+  filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.1));
+}
+.theme-light .menu-card:nth-child(2)::after {
+  content: "🌸";
+  position: absolute;
+  top: -14px;
+  right: 25px;
+  font-size: 1.3rem;
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.1));
 }
 
