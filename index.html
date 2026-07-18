@@ -1190,7 +1190,7 @@
                 "num": 2,
                 "title": "\"예약\" 버튼을 누르세요",
                 "desc": "\"예약하기\" 또는 \"웨이팅\" 버튼을 찾아 누르세요.",
-                "mockupHTML": "<div class=\"hifi-mockup theme-kakao\"><div class=\"hifi-notch\"></div><div class=\"hifi-topbar\"><span class=\"title\">채팅</span><span class=\"icons\">🔍⚙️</span></div><div class=\"hifi-content\" style=\"background:#fff;\"><div class=\"hifi-list\"><div class=\"hifi-list-item\"><div class=\"hifi-avatar\">👤</div><div class=\"hifi-text-col\"><span class=\"hifi-text-title\">손주</span><span class=\"hifi-text-desc\">할머니 사랑해요</span></div></div></div><div class=\"hifi-bottombar\"><span class=\"active\">👤</span><span class=\"hifi-target-sm\">💬</span><span>👁️</span><span>🛍️</span><span>⋯</span></div><div class=\"finger-cursor\" style=\"top:330px;left:65px;\">👆</div></div></div>"
+                "mockupHTML": "<div class=\"hifi-mockup theme-kakao\" style=\"background:#fff;\"><div class=\"hifi-list\"><div class=\"hifi-list-item\"><div class=\"hifi-avatar\">👤</div><div class=\"hifi-text-col\"><span class=\"hifi-text-title\">손주</span><span class=\"hifi-text-desc\">할머니 사랑해요</span></div></div></div><div class=\"hifi-bottombar\"><span class=\"active\">👤</span><span class=\"hifi-target-sm\">💬</span><span>👁️</span><span>🛍️</span><span>⋯</span></div><div class=\"finger-cursor\" style=\"top:330px;left:65px;\">👆</div></div></div>"
             },
             {
                 "num": 3,
@@ -1471,16 +1471,90 @@
     let matchedCategory = null;
     let matchedNoun = '';
 
-    // 1. 음식 키워드 판별
-    for (const food of foodKeywords) {
-      if (nq.includes(normalizeKey(food))) {
-        matchedCategory = 'food';
-        matchedNoun = food;
-        break;
+    // 1. 중고 거래 우선 검사 (음식 '당근' 등보다 먼저 판별해야 오분류를 막을 수 있음)
+    if (nq.includes('당근마켓') || nq.includes('번개장터') || nq.includes('중고나라') || nq.includes('중고거래')) {
+      matchedCategory = 'secondhand';
+      matchedNoun = nq.includes('당근마켓') ? '당근마켓' : (nq.includes('번개장터') ? '번개장터' : '중고거래');
+    }
+
+    // 2. 국가 지원금 우선 검사
+    if (!matchedCategory && (nq.includes('지원금') || nq.includes('보조금') || nq.includes('수당') || nq.includes('정부24') || nq.includes('민원24'))) {
+      matchedCategory = 'government';
+      matchedNoun = '국가지원금';
+    }
+
+    // 3. 여행/숙박 우선 검사
+    if (!matchedCategory && (nq.includes('여행') || nq.includes('호텔') || nq.includes('펜션') || nq.includes('비행기표') || nq.includes('항공권') || nq.includes('숙소') || nq.includes('숙박') || nq.includes('야놀자') || nq.includes('여기어때') || nq.includes('트립닷컴'))) {
+      matchedCategory = 'travel';
+      matchedNoun = '여행/숙박';
+    }
+
+    // 4. 영화/드라마/다큐/OTT 우선 검사
+    if (!matchedCategory && (nq.includes('영화') || nq.includes('드라마') || nq.includes('다큐') || nq.includes('다큐멘터리') || nq.includes('예능') || nq.includes('넷플릭스') || nq.includes('티빙') || nq.includes('왓챠') || nq.includes('웨이브') || nq.includes('디즈니플러스'))) {
+      matchedCategory = 'ott';
+      matchedNoun = '영화/드라마/다큐';
+    }
+
+    // 5. 의류/패션 우선 검사
+    if (!matchedCategory && (nq.includes('옷') || nq.includes('바지') || nq.includes('원피스') || nq.includes('셔츠') || nq.includes('아우터') || nq.includes('에이블리') || nq.includes('지그재그') || nq.includes('의복'))) {
+      matchedCategory = 'clothing';
+      matchedNoun = '의류/옷';
+    }
+
+    // 6. 신선식품 / 박스 식재료 구매 검출
+    if (!matchedCategory) {
+      const freshFoodKeywords = ['박스', '상자', '신선', '생수', '쌀', '식재료', '대용량', '묶음', '산지직송', '박스째', '상자째'];
+      const rawIngredients = ['감자', '고구마', '양파', '마늘', '사과', '귤', '오렌지', '토마토', '생수', '쌀', '수박', '배추', '무', '대파', '고기', '소고기', '돼지고기', '닭고기'];
+      
+      let hasFreshModifier = false;
+      for (const kw of freshFoodKeywords) {
+        if (nq.includes(kw)) {
+          hasFreshModifier = true;
+          break;
+        }
+      }
+
+      let isRawIngredient = false;
+      for (const ing of rawIngredients) {
+        if (nq.includes(normalizeKey(ing))) {
+          isRawIngredient = true;
+          matchedNoun = ing;
+          break;
+        }
+      }
+
+      if (hasFreshModifier || isRawIngredient) {
+        const isDeliveryOnly = nq.includes('치킨') || nq.includes('피자') || nq.includes('짜장면') || nq.includes('짬뽕') || nq.includes('탕수육') || nq.includes('떡볶이') || nq.includes('족발') || nq.includes('보쌈');
+        if (!isDeliveryOnly) {
+          let hasFoodWord = isRawIngredient;
+          if (!hasFoodWord) {
+            for (const food of foodKeywords) {
+              if (nq.includes(normalizeKey(food))) {
+                hasFoodWord = true;
+                matchedNoun = food;
+                break;
+              }
+            }
+          }
+          if (hasFoodWord) {
+            matchedCategory = 'fresh_food';
+          }
+        }
       }
     }
 
-    // 2. 일반 상품(물건) 키워드 판별
+    // 7. 일반 배달음식 검사
+    if (!matchedCategory) {
+      for (const food of foodKeywords) {
+        if (nq.includes(normalizeKey(food))) {
+          matchedCategory = 'food';
+          matchedNoun = food;
+          break;
+        }
+      }
+    }
+
+    // 8. 일반 상품(물건) 키워드 판별
     if (!matchedCategory) {
       for (const good of goodsKeywords) {
         if (nq.includes(normalizeKey(good))) {
@@ -1491,7 +1565,7 @@
       }
     }
 
-    // 3. 스포츠 키워드 판별
+    // 9. 스포츠 키워드 판별
     if (!matchedCategory) {
       for (const sport of sportsKeywords) {
         if (nq.includes(normalizeKey(sport))) {
@@ -1502,7 +1576,7 @@
       }
     }
 
-    // 4. 음악 키워드 판별
+    // 10. 음악 키워드 판별
     if (!matchedCategory) {
       for (const music of musicKeywords) {
         if (nq.includes(normalizeKey(music))) {
@@ -1521,30 +1595,168 @@
     let title = '';
     let apps = [];
 
-    if (category === 'food') {
-      title = `🛵 음식 "${noun}" 주문/배달을 원하시나요?`;
+    if (category === 'secondhand') {
+      title = `🤝 중고 거래 마켓 "${noun}"을 원하시나요?`;
+      apps = [
+        {
+          name: '당근마켓',
+          icon: '🥕',
+          desc: '우리 동네 이웃들과 따뜻하게 중고 물건을 거래하는 대표 동네 직거래 앱이에요.',
+          action: '당근마켓'
+        },
+        {
+          name: '번개장터',
+          icon: '⚡',
+          desc: '편리한 택배 거래와 안전 결제 시스템을 갖춘 전국 단위 중고 거래 앱이에요.',
+          action: '번개장터'
+        }
+      ];
+    } else if (category === 'government') {
+      title = `🏛️ 민원 및 국가 지원금 신청을 원하시나요?`;
+      apps = [
+        {
+          name: '정부24',
+          icon: '🏛️',
+          desc: '국민 지원금, 보조금, 주민등록등본 발급 등 정부 민원 서비스를 이용하는 공식 통합 포털이에요.',
+          action: '정부24'
+        },
+        {
+          name: '복지로',
+          icon: '🧡',
+          desc: '나와 가족이 받을 수 있는 각종 복지 혜택과 수당을 찾아보고 신청하는 앱이에요.',
+          action: '복지로'
+        }
+      ];
+    } else if (category === 'travel') {
+      title = `✈️ 여행/숙소 및 교통편 예약을 원하시나요?`;
+      apps = [
+        {
+          name: '야놀자',
+          icon: '🏨',
+          desc: '국내외 호텔, 펜션 등 모든 숙소 예약 및 고속버스, 기차표 예매까지 지원하는 대표 앱이에요.',
+          action: '야놀자'
+        },
+        {
+          name: '여기어때',
+          icon: '🚩',
+          desc: '쉬운 숙소 검색과 다양한 매일 혜택을 주는 국내 숙박 전문 예약 앱이에요.',
+          action: '여기어때'
+        },
+        {
+          name: '트립닷컴',
+          icon: '✈️',
+          desc: '전 세계의 저렴한 비행기 항공권 예매와 해외 호텔 예약을 지원하는 여행 앱이에요.',
+          action: '트립닷컴'
+        }
+      ];
+    } else if (category === 'clothing') {
+      title = `👚 옷/의류 상품 쇼핑을 원하시나요?`;
+      apps = [
+        {
+          name: '에이블리',
+          icon: '🛍️',
+          desc: '전 상품 무료 배송으로 부담 없이 예쁜 옷들을 쇼핑할 수 있는 인기 패션 앱이에요.',
+          action: '에이블리'
+        },
+        {
+          name: '지그재그',
+          icon: '👗',
+          desc: '여러 인터넷 쇼핑몰의 다양한 옷을 한데 모아 입어보듯 구매할 수 있는 패션 앱이에요.',
+          action: '지그재그'
+        },
+        {
+          name: '네이버 쇼핑',
+          icon: '💚',
+          desc: '브랜드 의류의 가격을 편리하게 비교하고 쉽게 네이버페이로 결제해요.',
+          action: '네이버 쇼핑'
+        },
+        {
+          name: '쿠팡',
+          icon: '📦',
+          desc: '주문한 옷을 빠르게 받아보고 무료로 반품할 수 있는 안전한 쇼핑 앱이에요.',
+          action: '쿠팡'
+        }
+      ];
+    } else if (category === 'ott') {
+      title = `🎬 영화, 드라마, 다큐멘터리 감상을 원하시나요?`;
+      apps = [
+        {
+          name: '넷플릭스',
+          icon: '🔴',
+          desc: '전 세계의 수많은 오리지널 영화와 시리즈 드라마를 무제한으로 즐기는 대표 OTT 서비스예요.',
+          action: '넷플릭스'
+        },
+        {
+          name: '티빙',
+          icon: '⚪',
+          desc: 'tvN, JTBC 등 국내 실시간 방송 예능과 최신 오리지널 드라마를 볼 수 있는 토종 앱이에요.',
+          action: '티빙'
+        },
+        {
+          name: '웨이브',
+          icon: '🔵',
+          desc: 'KBS, MBC, SBS 지상파 방송 예능과 추억의 명작 드라마를 다시 보기 좋은 국산 앱이에요.',
+          action: '웨이브'
+        },
+        {
+          name: '왓챠',
+          icon: '🌸',
+          desc: '다양한 매니아 영화와 드라마, 명품 다큐멘터리들을 골라보기 좋은 영화 전문 앱이에요.',
+          action: '왓챠'
+        },
+        {
+          name: '유튜브',
+          icon: '📺',
+          desc: '재미있는 짧은 영상, 요약 비디오, 스포츠 하이라이트 영상 등을 무료로 감상할 수 있어요.',
+          action: '유튜브'
+        }
+      ];
+    } else if (category === 'fresh_food') {
+      title = `🍎 신선 식재료/신선 식품 "${noun}" 주문을 원하시나요?`;
+      apps = [
+        {
+          name: '쿠팡 로켓프레시',
+          icon: '📦',
+          desc: '무거운 쌀, 생수, 신선한 야채와 과일을 다음 날 새벽까지 대문 앞에 배송해 드려요.',
+          action: '쿠팡'
+        },
+        {
+          name: '네이버 쇼핑',
+          icon: '💚',
+          desc: '전국 농가 산지 직송 과일이나 대용량 상자 식자재의 최저가를 비교해 구매해요.',
+          action: '네이버 쇼핑'
+        },
+        {
+          name: '마켓컬리',
+          icon: '💜',
+          desc: '엄선된 고품질 유기농 식품 및 맛있는 디저트류를 샛별 배송으로 보내주는 앱이에요.',
+          action: '마켓컬리'
+        }
+      ];
+    } else if (category === 'food') {
+      title = `🛵 즉석 음식 "${noun}" 배달 주문을 원하시나요?`;
       apps = [
         {
           name: '배달의민족',
           icon: '🛵',
-          desc: '대한민국 대표 배달 앱으로, 다양한 음식을 집 앞으로 배달해 드려요.',
+          desc: '대한민국 대표 배달 앱으로, 다양한 즉석 조리 음식을 바로 집 앞으로 배달해 드려요.',
           action: '배달'
         },
         {
           name: '요기요',
           icon: '🎁',
-          desc: '다양한 할인 쿠폰 and 혜택이 가득한 배달 앱이에요.',
+          desc: '다양한 할인 쿠폰과 프랜차이즈 브랜드 혜택이 가득한 배달 앱이에요.',
           action: '요기요'
         },
         {
           name: '쿠팡이츠',
           icon: '⚡',
-          desc: '쿠팡에서 만든 빠른 배달 앱으로, 한 번에 한 집만 신속하게 배달해요.',
+          desc: '쿠팡에서 만든 배달 앱으로, 한 번에 한 집만 빠르게 신속 배달해요.',
           action: '쿠팡이츠'
         }
       ];
     } else if (category === 'goods') {
-      title = `🛍️ 물건 "${noun}" 쇼핑/구매를 원하시나요?`;
+      title = `🛍️ 일반 상품/생필품 "${noun}" 쇼핑을 원하시나요?`;
       apps = [
         {
           name: '쿠팡',
@@ -1582,7 +1794,7 @@
         },
         {
           name: '네이버 스포츠',
-          icon: '🏟️',
+          icon: 'Stadium',
           desc: '경기 중계일정, 기사 및 경기 하이라이트를 모아서 볼 수 있어요.',
           action: '네이버 스포츠'
         }
