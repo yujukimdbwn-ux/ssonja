@@ -1074,14 +1074,14 @@
       let v = koVoices.find(v => /yuna|female|woman|sun.hi|heami/i.test(v.name));
       if (!v && koVoices.length) v = koVoices[0];
       if (v) utt.voice = v;
-      utt.pitch = 1.4;
-      utt.rate  = 0.9;
+      utt.pitch = 1.6; // 상냥하고 통통 튀는 여자아이 목소리
+      utt.rate  = 1.0;
     } else {
-      let v = koVoices.find(v => /minjun|male|man/i.test(v.name));
-      if (!v && koVoices.length) v = koVoices.find(vv => !/yuna|sun.hi/i.test(vv.name)) || koVoices[0];
+      let v = koVoices.find(v => /minjun|male|man|injoon/i.test(v.name));
+      if (!v && koVoices.length) v = koVoices.find(vv => !/yuna|sun.hi|heami/i.test(vv.name)) || koVoices[0];
       if (v) utt.voice = v;
-      utt.pitch = 1.4;
-      utt.rate  = 0.9;
+      utt.pitch = 1.1; // 씩씩하고 약간 낮은 남자아이 목소리
+      utt.rate  = 0.95;
     }
     const avatars = document.querySelectorAll('.avatar-img-wrapper');
     avatars.forEach(a => { a.classList.add('talking'); a.classList.remove('smiling','listening'); });
