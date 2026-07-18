@@ -779,11 +779,11 @@
 단어 설명만 2~4문장으로 짧고 명확하게 답해줘. 앞에 "안녕하세요" 같은 인사말은 빼줘.`;
 
     const body = {
-      contents: [{ parts: [{ text: prompt }] }],
+      prompt: prompt,
       generationConfig: { temperature: 0.7, maxOutputTokens: 300 }
     };
 
-    const res = await fetch(GEMINI_API_URL, {
+    const res = await fetch('/api/gemini', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -1374,11 +1374,11 @@
 주의: type이 GUIDE면 guide 객체를 채우고 action은 null. type이 ACTION이면 action 객체를 채우고 guide는 null로 해.`;
 
     const body = {
-      contents: [{ parts: [{ text: prompt }] }],
+      prompt: prompt,
       generationConfig: { temperature: 0.2, responseMimeType: "application/json" }
     };
 
-    const res = await fetch(GEMINI_API_URL, {
+    const res = await fetch('/api/gemini', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
