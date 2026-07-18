@@ -1471,37 +1471,58 @@
     let matchedCategory = null;
     let matchedNoun = '';
 
-    // 1. 중고 거래 우선 검사 (음식 '당근' 등보다 먼저 판별해야 오분류를 막을 수 있음)
-    if (nq.includes('당근마켓') || nq.includes('번개장터') || nq.includes('중고나라') || nq.includes('중고거래')) {
+    // 1. 중고 거래 (당근마켓, 번개장터) 우선 검사 + "팔기", "교환" 키워드 포함 시 최우선 연동
+    if (nq.includes('당근마켓') || nq.includes('번개장터') || nq.includes('중고나라') || nq.includes('중고거래') || 
+        nq.includes('팔기') || nq.includes('교환') || nq.includes('물물교환') || nq.includes('판매') || nq.includes('처분')) {
       matchedCategory = 'secondhand';
-      matchedNoun = nq.includes('당근마켓') ? '당근마켓' : (nq.includes('번개장터') ? '번개장터' : '중고거래');
+      matchedNoun = nq.includes('당근마켓') ? '당근마켓' : (nq.includes('번개장터') ? '번개장터' : '중고거래/교환/팔기');
     }
 
-    // 2. 국가 지원금 우선 검사
+    // 2. 주식 및 가상화폐 (빗썸 등) 우선 검사
+    if (!matchedCategory && (nq.includes('주식') || nq.includes('코인') || nq.includes('비트코인') || nq.includes('가상화폐') || nq.includes('빗썸') || nq.includes('업비트') || nq.includes('증권') || nq.includes('투자') || nq.includes('주가') || nq.includes('주식투자'))) {
+      matchedCategory = 'finance';
+      matchedNoun = '주식/가상화폐';
+    }
+
+    // 3. 카페 앱 적립 및 주문 (특정 적립/주문 패턴일 때에만 조건부 추천)
+    if (!matchedCategory && (nq.includes('카페') || nq.includes('커피') || nq.includes('스타벅스') || nq.includes('투썸')) && 
+        (nq.includes('적립') || nq.includes('포인트') || nq.includes('주문') || nq.includes('사이렌오더') || nq.includes('스탬프') || nq.includes('쿠폰'))) {
+      matchedCategory = 'cafe';
+      matchedNoun = '카페 포인트/주문';
+    }
+
+    // 4. 마트 앱 물품 예약 및 적립 (특정 예약/적립 패턴일 때에만 조건부 추천)
+    if (!matchedCategory && (nq.includes('마트') || nq.includes('이마트') || nq.includes('홈플러스') || nq.includes('롯데마트')) && 
+        (nq.includes('적립') || nq.includes('포인트') || nq.includes('예약') || nq.includes('물품예약') || nq.includes('장보기') || nq.includes('쿠폰'))) {
+      matchedCategory = 'mart';
+      matchedNoun = '마트 예약/포인트';
+    }
+
+    // 5. 국가 지원금 우선 검사
     if (!matchedCategory && (nq.includes('지원금') || nq.includes('보조금') || nq.includes('수당') || nq.includes('정부24') || nq.includes('민원24'))) {
       matchedCategory = 'government';
       matchedNoun = '국가지원금';
     }
 
-    // 3. 여행/숙박 우선 검사
+    // 6. 여행/숙박 우선 검사
     if (!matchedCategory && (nq.includes('여행') || nq.includes('호텔') || nq.includes('펜션') || nq.includes('비행기표') || nq.includes('항공권') || nq.includes('숙소') || nq.includes('숙박') || nq.includes('야놀자') || nq.includes('여기어때') || nq.includes('트립닷컴'))) {
       matchedCategory = 'travel';
       matchedNoun = '여행/숙박';
     }
 
-    // 4. 영화/드라마/다큐/OTT 우선 검사
+    // 7. 영화/드라마/다큐/OTT 우선 검사
     if (!matchedCategory && (nq.includes('영화') || nq.includes('드라마') || nq.includes('다큐') || nq.includes('다큐멘터리') || nq.includes('예능') || nq.includes('넷플릭스') || nq.includes('티빙') || nq.includes('왓챠') || nq.includes('웨이브') || nq.includes('디즈니플러스'))) {
       matchedCategory = 'ott';
       matchedNoun = '영화/드라마/다큐';
     }
 
-    // 5. 의류/패션 우선 검사
+    // 8. 의류/패션 우선 검사
     if (!matchedCategory && (nq.includes('옷') || nq.includes('바지') || nq.includes('원피스') || nq.includes('셔츠') || nq.includes('아우터') || nq.includes('에이블리') || nq.includes('지그재그') || nq.includes('의복'))) {
       matchedCategory = 'clothing';
       matchedNoun = '의류/옷';
     }
 
-    // 6. 신선식품 / 박스 식재료 구매 검출
+    // 9. 신선식품 / 박스 식재료 구매 검출
     if (!matchedCategory) {
       const freshFoodKeywords = ['박스', '상자', '신선', '생수', '쌀', '식재료', '대용량', '묶음', '산지직송', '박스째', '상자째'];
       const rawIngredients = ['감자', '고구마', '양파', '마늘', '사과', '귤', '오렌지', '토마토', '생수', '쌀', '수박', '배추', '무', '대파', '고기', '소고기', '돼지고기', '닭고기'];
@@ -1543,7 +1564,7 @@
       }
     }
 
-    // 7. 일반 배달음식 검사
+    // 10. 일반 배달음식 검사
     if (!matchedCategory) {
       for (const food of foodKeywords) {
         if (nq.includes(normalizeKey(food))) {
@@ -1554,7 +1575,7 @@
       }
     }
 
-    // 8. 일반 상품(물건) 키워드 판별
+    // 11. 일반 상품(물건) 키워드 판별
     if (!matchedCategory) {
       for (const good of goodsKeywords) {
         if (nq.includes(normalizeKey(good))) {
@@ -1565,7 +1586,7 @@
       }
     }
 
-    // 9. 스포츠 키워드 판별
+    // 12. 스포츠 키워드 판별
     if (!matchedCategory) {
       for (const sport of sportsKeywords) {
         if (nq.includes(normalizeKey(sport))) {
@@ -1576,7 +1597,7 @@
       }
     }
 
-    // 10. 음악 키워드 판별
+    // 13. 음악 키워드 판별
     if (!matchedCategory) {
       for (const music of musicKeywords) {
         if (nq.includes(normalizeKey(music))) {
@@ -1609,6 +1630,78 @@
           icon: '⚡',
           desc: '편리한 택배 거래와 안전 결제 시스템을 갖춘 전국 단위 중고 거래 앱이에요.',
           action: '번개장터'
+        }
+      ];
+    } else if (category === 'finance') {
+      title = `📈 주식 및 가상화폐(코인) 투자를 원하시나요?`;
+      apps = [
+        {
+          name: '빗썸',
+          icon: '🪙',
+          desc: '국내 대표 가상자산(코인) 거래소 앱으로, 쉽고 빠르게 비트코인 등을 거래할 수 있어요.',
+          action: '빗썸'
+        },
+        {
+          name: '업비트',
+          icon: '📈',
+          desc: '국내 최대 거래량의 안전한 디지털 자산 거래소 앱이에요.',
+          action: '업비트'
+        },
+        {
+          name: '삼성증권 mPOP',
+          icon: '🦁',
+          desc: '주식 계좌 개설부터 주식 매매, 펀드 투자까지 한 번에 가능한 대형 증권사 앱이에요.',
+          action: '삼성증권'
+        },
+        {
+          name: '미래에셋증권',
+          icon: '🍊',
+          desc: '안정적인 국내외 주식 투자 및 연금 관리를 돕는 금융 거래 앱이에요.',
+          action: '미래에셋증권'
+        }
+      ];
+    } else if (category === 'cafe') {
+      title = `☕ 카페 포인트 적립 및 주문을 원하시나요?`;
+      apps = [
+        {
+          name: '스타벅스',
+          icon: '🧜‍♀️',
+          desc: '카드 등록 및 바코드로 별 포인트를 적립하고 사이렌 오더로 줄 서지 않고 주문하는 앱이에요.',
+          action: '스타벅스'
+        },
+        {
+          name: '메가커피',
+          icon: '💛',
+          desc: '음료 구매 시 스탬프를 적립하고 메가오더로 미리 주문하여 픽업하는 실속형 앱이에요.',
+          action: '메가커피'
+        },
+        {
+          name: '투썸하트',
+          icon: '❤️',
+          desc: '투썸플레이스의 하트 포인트를 적립하고 예약 주문할 수 있는 카페 전용 앱이에요.',
+          action: '투썸하트'
+        }
+      ];
+    } else if (category === 'mart') {
+      title = `🛒 마트 포인트 적립 및 물품 예약을 원하시나요?`;
+      apps = [
+        {
+          name: '이마트',
+          icon: '💛',
+          desc: '이마트 포인트를 적립하고 행사 상품 쿠폰 할인 및 모바일 영수증을 확인하는 마트 앱이에요.',
+          action: '이마트'
+        },
+        {
+          name: '홈플러스',
+          icon: '🔴',
+          desc: '홈플러스 머니 포인트 적립과 더불어 마트 상품을 모바일로 바로 예약/장보는 앱이에요.',
+          action: '홈플러스'
+        },
+        {
+          name: '롯데마트 GO',
+          icon: '❤️',
+          desc: '롯데마트 포인트(L.POINT) 적립 및 다양한 매장 할인 혜택 바코드를 담은 스마트한 마트 앱이에요.',
+          action: '롯데마트'
         }
       ];
     } else if (category === 'government') {
