@@ -357,7 +357,7 @@
   // =============================================
   // Gemini API 설정
   // =============================================
-  const GEMINI_API_KEY = 'AQ.Ab8RN6IUdUPFSEuaVVkFFU1imUv3422BpXmFfvgepZ5vFrPq0AAQ.Ab8RN6IUdUPFSEuaVVkFFU1imUv3422BpXmFfvgepZ5vFrPq0A'; // Vercel 환경변수 등 안전한 방식으로 주입하세요.
+  const GEMINI_API_KEY = 'YOUR_API_KEY_HERE'; // Vercel 환경변수 등 안전한 방식으로 주입하세요.
   const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
   // =============================================
@@ -806,6 +806,27 @@
     return text.trim();
   }
 
+  async function callGeminiOneLineSummary(query) {
+    const prompt = `너는 디지털 기기 조작이 서툰 할머니, 할아버지를 돕는 다정한 인공지능 손주야. 할아버지가 검색창에 입력한 활동이나 단어(예: '음악 틀기', '기차표 예매' 등)를 분석해서, 복잡한 단계 설명 없이 딱 한 줄로 요약해 드려야 해. 반드시 핵심만 짚어서 '할머니, 할아버지! 이 활동은 [유튜브/코레일/네이버 트래블 등 해당 서비스의 정확한 이름] 앱이나 웹사이트에 들어가서 하시면 됩니다!' 라는 형식으로만 짧고 명확하게 대답해 줘. 다른 사족은 붙이지 말고 문장 끝에 '할머니, 할아버지!'로 다정하게 마무리해 줘.
+요청 단어: "${query}"`;
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.4 }
+      })
+    });
+
+    if (!response.ok) throw new Error('API Request Failed');
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('No Response');
+    return text.trim();
+  }
+
+
   // =============================================
   // 초기화
   // =============================================
@@ -961,16 +982,31 @@
       updateTranslatorCharComment('AI가 찾아드렸어요! 🔊 버튼을 눌러보세요!');
       triggerAvatarBubble('AI 번역 완료! 🔊 버튼을 눌러보세요.');
     } catch (err) {
-      console.error('Gemini API 오류:', err);
-      const fallbackMsg = `할머니, 할아버지! 죄송해요, 지금 AI가 잠시 쉬고 있어요. "${query}"는 제가 아직 배우지 못한 단어예요. 나중에 다시 시도해 주세요!`;
-      resultWord.textContent = `"${query}"`;
-      resultMean.textContent = fallbackMsg;
-      lastTranslatedText = fallbackMsg;
-      sourceBadge.textContent = '⚠️ 잠시 오류';
-      sourceBadge.className = 'result-badge badge-error';
-      csvRefBox.classList.add('hidden');
-      popResult(resultCard);
-      updateTranslatorCharComment('AI가 잠시 쉬고 있어요. 나중에 다시 해주세요!');
+      console.error('Gemini API 오류, trying fallback summary:', err);
+      try {
+        const fallbackAnswer = await callGeminiOneLineSummary(query);
+        resultWord.textContent = `"${query}"`;
+        resultMean.textContent = fallbackAnswer;
+        lastTranslatedText = fallbackAnswer;
+        sourceBadge.textContent = '🤖 AI 안내';
+        sourceBadge.className = 'result-badge badge-ai';
+        csvRefBox.classList.add('hidden');
+        popResult(resultCard);
+        updateTranslatorCharComment('AI가 안내를 찾아드렸어요!');
+        triggerAvatarBubble('안내 완료! 🔊 버튼을 눌러보세요.');
+        speakGuideline(fallbackAnswer);
+      } catch (fallbackErr) {
+        console.error('Fallback failed:', fallbackErr);
+        const fallbackMsg = `할머니, 할아버지! 죄송해요, 지금 AI가 잠시 쉬고 있어요. "${query}"는 제가 아직 배우지 못한 단어예요. 나중에 다시 시도해 주세요!`;
+        resultWord.textContent = `"${query}"`;
+        resultMean.textContent = fallbackMsg;
+        lastTranslatedText = fallbackMsg;
+        sourceBadge.textContent = '⚠️ 잠시 오류';
+        sourceBadge.className = 'result-badge badge-error';
+        csvRefBox.classList.add('hidden');
+        popResult(resultCard);
+        updateTranslatorCharComment('AI가 잠시 쉬고 있어요. 나중에 다시 해주세요!');
+      }
     } finally {
       aiLoading.classList.add('hidden');
       translateBtn.disabled = false;
@@ -1438,11 +1474,32 @@
         renderGuide(aiRes.guide || aiRes);
       }
     } catch (err) {
-      console.error('Gemini Gen Error:', err);
-      if(loadingEl) loadingEl.classList.add('hidden');
-      notFoundEl.classList.remove('hidden');
-      triggerAvatarBubble('요청을 처리하는데 실패했어요 ㅠㅠ');
-      speakGuideline('앗, 문제가 생겼어요. 다른 걸 검색해 보시겠어요?');
+      console.error('Gemini Gen Error, trying fallback summary:', err);
+      try {
+        const fallbackAnswer = await callGeminiOneLineSummary(query);
+        if(loadingEl) loadingEl.classList.add('hidden');
+        notFoundEl.classList.add('hidden');
+        
+        resultEl.innerHTML = `
+          <div class="result-card" style="margin-top: 10px;">
+            <span class="match-badge">안내</span>
+            <div class="app-name">💡 안내</div>
+            <div class="app-desc" style="font-size: calc(18px * var(--font-scale, 1)); line-height: 1.6; color: #2b2520;">
+              ${fallbackAnswer}
+            </div>
+          </div>
+        `;
+        resultEl.classList.remove('hidden');
+        resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        speakGuideline(fallbackAnswer);
+        triggerAvatarBubble('안내를 준비해 드렸어요!');
+      } catch (fallbackErr) {
+        console.error('Fallback failed:', fallbackErr);
+        if(loadingEl) loadingEl.classList.add('hidden');
+        notFoundEl.classList.remove('hidden');
+        triggerAvatarBubble('요청을 처리하는데 실패했어요 ㅠㅠ');
+        speakGuideline('앗, 문제가 생겼어요. 다른 걸 검색해 보시겠어요?');
+      }
     }
   }
 
