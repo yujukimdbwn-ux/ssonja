@@ -244,10 +244,16 @@
         </div>
       </div>
 
+      <div id="guide-loading" class="guide-not-found hidden" style="background:#FFF9C4; border:2px solid #FEE500;">
+        <div class="not-found-icon">🤖📝</div>
+        <p class="not-found-text">손자가 열심히 가이드를 작성 중이에요...</p>
+        <p class="not-found-sub">조금만 기다려주세요, 할머니 할아버지!</p>
+      </div>
+
       <div id="guide-not-found" class="guide-not-found hidden">
         <div class="not-found-icon">🤔</div>
-        <p class="not-found-text">할머니, 할아버지! 제가 아직 이 항목은 준비하지 못했어요.</p>
-        <p class="not-found-sub">위의 빠른 버튼 중 하나를 눌러보세요!</p>
+        <p class="not-found-text">할머니, 할아버지! 원하시는 내용을 찾지 못했어요.</p>
+        <p class="not-found-sub">다른 검색어를 입력해 보세요!</p>
       </div>
     </section>
 
@@ -1254,24 +1260,50 @@
     doGuideSearch(kw);
   }
 
-  function doGuideSearch(override) {
-    const query = normalizeKey(override || document.getElementById('guide-input')?.value || '');
+  async function doGuideSearch(override) {
+    const query = override || document.getElementById('guide-input')?.value || '';
+    if (!query.trim()) return;
+    const nq = normalizeKey(query);
     const resultEl   = document.getElementById('guide-result');
     const notFoundEl = document.getElementById('guide-not-found');
+    const loadingEl  = document.getElementById('guide-loading');
 
     let match = null;
     for (const key of Object.keys(guideDatabase)) {
       const nk = normalizeKey(key);
-      if (query.includes(nk) || nk.includes(query)) { match = guideDatabase[key]; break; }
+      if (nq.includes(nk) || nk.includes(nq)) { match = guideDatabase[key]; break; }
     }
 
-    if (!match) {
-      resultEl.classList.add('hidden');
-      notFoundEl.classList.remove('hidden');
+    if (match) {
+      notFoundEl.classList.add('hidden');
+      if(loadingEl) loadingEl.classList.add('hidden');
+      renderGuide(match);
       return;
     }
-    notFoundEl.classList.add('hidden');
 
+    // AI 동적 가이드 생성 (GenUI)
+    resultEl.classList.add('hidden');
+    notFoundEl.classList.add('hidden');
+    if(loadingEl) loadingEl.classList.remove('hidden');
+    
+    triggerAvatarBubble(`"${query}" 사용법을 만들고 있어요!`);
+    speakGuideline(`손자가 ${query} 사용법을 열심히 작성 중이에요. 조금만 기다려주세요!`);
+
+    try {
+      const aiGuide = await callGeminiForGuide(query);
+      if(loadingEl) loadingEl.classList.add('hidden');
+      renderGuide(aiGuide);
+    } catch (err) {
+      console.error('Gemini Guide Gen Error:', err);
+      if(loadingEl) loadingEl.classList.add('hidden');
+      notFoundEl.classList.remove('hidden');
+      triggerAvatarBubble('가이드 생성에 실패했어요 ㅠㅠ');
+      speakGuideline('앗, 가이드를 만드는데 문제가 생겼어요. 다른 걸 검색해 보시겠어요?');
+    }
+  }
+
+  function renderGuide(match) {
+    const resultEl = document.getElementById('guide-result');
     document.getElementById('guide-app-badge').innerHTML =
       `<span class="guide-app-icon">${match.icon}</span><span class="guide-app-name">${match.appName}</span>`;
     document.getElementById('guide-intro-text').textContent = match.intro;
@@ -1283,7 +1315,7 @@
           <div class="guide-step-title">${s.title}</div>
           <div class="guide-step-desc">${s.desc}</div>
           <div class="guide-step-img-wrap">
-            ${s.mockupHTML}
+            ${s.mockupHTML || generateGenericMockup(s.title, s.emoji || '✨', match.appName)}
           </div>
         </div>
       </div>`).join('');
@@ -1295,6 +1327,51 @@
     resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     speakGuideline(`${match.appName} 사용법이에요. ${match.intro}`);
     triggerAvatarBubble(`${match.icon} 사용법이에요!`);
+  }
+
+  function generateGenericMockup(title, emoji, appName) {
+    return `<div class="hifi-mockup" style="background:#f0f0f0; border-color:#aaa;">
+      <div class="hifi-notch"></div>
+      <div class="hifi-topbar" style="background:#4A5568; color:#fff; justify-content:center;">
+        <span class="title" style="text-align:center; margin:0;">${appName}</span>
+      </div>
+      <div class="hifi-content" style="background:#fff; justify-content:center; align-items:center; text-align:center; padding: 20px;">
+        <div style="font-size:3.5rem; margin-bottom:15px; animation: target-pulse 1s infinite alternate;" class="hifi-target">${emoji}</div>
+        <div style="font-size:1.1rem; font-weight:900; color:#111; word-break:keep-all;">${title}</div>
+        <div class="finger-cursor" style="top:180px;left:100px;">👆</div>
+      </div>
+    </div>`;
+  }
+
+  async function callGeminiForGuide(query) {
+    const prompt = \`사용자가 "\${query}"의 사용법을 물어봤어. 이 앱이나 기기(또는 작업)의 사용법을 어르신들이 이해하기 쉽게 4~5단계로 설명해줘.
+반드시 아래 JSON 형식으로만 응답해. 다른 말은 절대 쓰지 마.
+{
+  "appName": "앱이나 작업 이름",
+  "icon": "관련 이모지 1개",
+  "intro": "어르신께 드리는 친절한 한 줄 소개",
+  "steps": [
+    { "num": 1, "title": "단계별 짧은 행동 지시", "desc": "상세 설명", "emoji": "이 단계에 어울리는 직관적인 이모지 1개" }
+  ],
+  "warnings": ["주의사항 1", "주의사항 2"]
+}\`;
+
+    const body = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.2, responseMimeType: "application/json" }
+    };
+
+    const res = await fetch(GEMINI_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) throw new Error('API Error');
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('No Data');
+    return JSON.parse(text.trim());
   }
 
   // =============================================
