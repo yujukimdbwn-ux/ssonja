@@ -272,18 +272,27 @@
       <button class="back-btn" onclick="showScreen('home-screen')">⬅️ 뒤로 가기</button>
       <h1 class="screen-title">🚨 보이스피싱 검출기</h1>
       <div class="screen-content">
-        <p>받으신 수상한 문자나 메신저 대화 내용을 입력하거나 사진을 찍어 올려보세요.</p>
-        <textarea class="app-textarea" id="phishing-input" placeholder="문자 내용 또는 대화 전문을 붙여넣기 해 주세요."></textarea>
+        <p style="font-size: calc(18px * var(--font-scale, 1)); font-weight: bold; color: #5c3e35; margin-bottom: 15px; text-align: center;">
+          💌 수상한 연락을 받으셨나요? 손주가 확인해 드릴게요!
+        </p>
         
-        <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px;">
-          <button class="action-btn" onclick="document.getElementById('phishing-photo-upload').click()" style="flex: 1; background: #34495e; border-radius: 20px; font-weight: bold;">📁 사진 올리기</button>
-          <button class="action-btn" onclick="openPhishingCamera()" style="flex: 1; background: #2c3e50; border-radius: 20px; font-weight: bold;">📸 카메라 촬영</button>
+        <!-- 파일 업로드 섹션 (드래그 앤 드롭 지원) -->
+        <div class="phishing-upload-box" id="phishing-drop-zone">
+          <div style="font-size: 36px; margin-bottom: 8px;">📁</div>
+          <div style="font-size: 15px; font-weight: bold; color: #555;">수상한 문자/카톡 캡처 사진 올리기</div>
+          <div style="font-size: 12px; color: #888; margin-top: 4px;">여기로 사진을 끌어다 놓거나 클릭해 주세요.</div>
+          <input type="file" id="phishing-photo-upload" accept="image/*" style="display:none;" onchange="handlePhishingPhotoUpload(this)">
         </div>
-        <input type="file" id="phishing-photo-upload" accept="image/*" style="display:none;" onchange="handlePhishingPhotoUpload(this)">
         
         <div id="phishing-photo-preview-area" class="hidden" style="text-align: center; margin: 15px 0;"></div>
         
-        <button class="action-btn color-alert" id="phishing-check-btn" onclick="doPhishingCheck()">🔍 피싱 위험도 검사</button>
+        <!-- 글로 입력하기 섹션 -->
+        <div style="margin-top: 20px;">
+          <label style="font-weight: bold; font-size: 15px; display: block; margin-bottom: 8px; color: #5c3e35;">✏️ 글로 직접 입력하기</label>
+          <textarea class="app-textarea" id="phishing-input" placeholder="문자 내용 또는 대화 전문을 여기에 적거나 붙여넣어 주세요." style="height: 120px;"></textarea>
+        </div>
+        
+        <button class="action-btn color-alert" id="phishing-check-btn" onclick="doPhishingCheck()" style="margin-top: 15px;">🔍 분석하기</button>
         <div id="phishing-result" class="phishing-result hidden"></div>
       </div>
     </section>
@@ -364,8 +373,9 @@
 
   <script>
   // =============================================
-  // Gemini API 설정
+  // Gemini API 및 공공데이터 API 설정
   // =============================================
+  const PUBLIC_DATA_API_KEY = "YOUR_PUBLIC_KEY_HERE";
   const GEMINI_API_KEY = 'AQ.Ab8RN' + '6IUdUPFSEuaVVkFFU1imUv3422BpXmFfvgepZ5vFrPq0A'; // 여기에 구글 Gemini API 키를 넣으세요 (로컬 테스트용)
   const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
@@ -875,6 +885,32 @@
     document.getElementById('phishing-input')?.addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doPhishingCheck(); }
     });
+
+    const dropZone = document.getElementById('phishing-drop-zone');
+    if (dropZone) {
+      dropZone.addEventListener('click', () => {
+        document.getElementById('phishing-photo-upload').click();
+      });
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#c49a3c';
+        dropZone.style.background = '#fdfcf7';
+      });
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.style.borderColor = 'var(--border)';
+        dropZone.style.background = '#fff';
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--border)';
+        dropZone.style.background = '#fff';
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+          const inputMock = { files: files };
+          handlePhishingPhotoUpload(inputMock);
+        }
+      });
+    }
   });
 
   // =============================================
@@ -2559,6 +2595,21 @@
   // =============================================
   window.phishingUploadedImageBase64 = null;
 
+  // 경찰청 공공데이터를 실시간 fetch하여 불러오는 표준 자바스크립트 함수 뼈대
+  async function fetchPolicePhishingData(keyword) {
+    try {
+      const serviceKey = PUBLIC_DATA_API_KEY;
+      const url = `https://api.odcloud.kr/api/15053413/v1/uddi:xxxx-xxxx-xxxx?page=1&perPage=10&returnType=JSON&serviceKey=${serviceKey}&cond[keyword]=${encodeURIComponent(keyword)}`;
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data;
+    } catch (e) {
+      console.error('경찰청 공공데이터 조회 실패:', e);
+      return null;
+    }
+  }
+
   async function callGeminiPhishingAPI(text, base64Data) {
     const promptText = `
 너는 할머니, 할아버지를 보이스피싱 범죄로부터 지켜내는 다정한 인공지능 손주이자 보안 전문가야.
@@ -2639,6 +2690,10 @@
     checkBtn.disabled = true;
     checkBtn.textContent = '🧐 분석 중...';
     resultEl.classList.add('hidden');
+
+    // 1. 비서 캐릭터가 다정하게 말하게 설정
+    triggerAvatarBubble("손주가 꼼꼼히 읽어보는 중이에요...");
+    speakGuideline("손주가 꼼꼼히 읽어보는 중이에요. 잠시만 기다려주세요, 할머니 할아버지!");
     
     try {
       const res = await callGeminiPhishingAPI(text, base64Data);
@@ -2650,6 +2705,7 @@
       let color = '';
       let border = '';
       let bg = '';
+      let progressColor = '';
       
       if (pct <= 10) {
         lvl = 'safe';
@@ -2657,49 +2713,77 @@
         color = '#1a5631';
         border = '#2ecc71';
         bg = '#eafaf1';
+        progressColor = '#2ecc71';
       } else if (pct <= 40) {
         lvl = 'caution';
         badge = '조심하세요! ⚠️';
         color = '#784212';
         border = '#f39c12';
         bg = '#fef9e7';
-      } else if (pct <= 70) {
+        progressColor = '#f39c12';
+      } else if (pct < 60) {
         lvl = 'warning';
         badge = '확인해보세요! 🔍';
         color = '#b05300';
         border = '#e67e22';
         bg = '#fdf2e9';
+        progressColor = '#e67e22';
       } else {
         lvl = 'danger';
         badge = '🚨 위험! 경찰에 신고하세요!';
         color = '#922b21';
         border = '#e74c3c';
         bg = '#fdedec';
+        progressColor = '#e74c3c';
       }
 
       let reportBtnHtml = '';
-      if (pct >= 70) {
+      if (pct >= 60) {
         reportBtnHtml = `
-          <a href="tel:112" class="action-btn" style="background:#e74c3c; color:white; font-size:18px; font-weight:bold; display:block; text-align:center; padding:12px; border-radius:30px; text-decoration:none; margin-top:15px; box-shadow:0 4px 10px rgba(231,76,60,0.3); animation: pulseAlert 1.5s infinite;">🚨 112 경찰 신고 전화 연결</a>
+          <div style="margin-top: 15px; border-top: 1px solid #f5b7b1; padding-top: 15px;">
+            <p style="color: #c0392b; font-weight: bold; font-size: 15px; margin-bottom: 10px;">
+              ⚠️ 피해 예방을 위해 즉시 경찰청(112) 또는 금융감독원(1332)에 신고 및 문의하시는 것을 권유드립니다.
+            </p>
+            <a href="tel:112" class="action-btn" style="background:#e74c3c; color:white; font-size:18px; font-weight:bold; display:block; text-align:center; padding:12px; border-radius:30px; text-decoration:none; box-shadow:0 4px 10px rgba(231,76,60,0.3); animation: pulseAlert 1.5s infinite;">🚨 112 경찰 신고 전화 연결</a>
+          </div>
         `;
       }
 
       resultEl.innerHTML = `
         <div style="border: 3px solid ${border}; background: ${bg}; color: ${color}; padding: 1.3rem 1.5rem; border-radius: 15px; margin-top: 15px;">
-          <div style="font-size: 22px; font-weight: 900; margin-bottom: 8px;">${badge} (위험도: ${pct}%)</div>
-          <div style="font-size: 16px; font-weight: 500; line-height: 1.6;">${reason}</div>
+          <div style="font-size: 22px; font-weight: 900; margin-bottom: 8px;">${badge}</div>
+          
+          <!-- 위험도 게이지 바 -->
+          <div style="margin: 15px 0 5px 0;">
+            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; margin-bottom: 5px;">
+              <span>보이스피싱 위험도</span>
+              <span>${pct}%</span>
+            </div>
+            <div class="phishing-progress-bar-container">
+              <div class="phishing-progress-bar-fill" id="phishing-progress-bar-fill" style="background: ${progressColor}; width: 0%;"></div>
+            </div>
+          </div>
+          
+          <div style="font-size: 16px; font-weight: 500; line-height: 1.6; margin-top: 10px;">${reason}</div>
           ${reportBtnHtml}
         </div>
       `;
       resultEl.classList.remove('hidden');
-      speakGuideline(`검사 위험도는 ${pct}퍼센트입니다. ${reason}`);
+      
+      // Animate progress bar fill width
+      setTimeout(() => {
+        const fillBar = document.getElementById('phishing-progress-bar-fill');
+        if (fillBar) fillBar.style.width = `${pct}%`;
+      }, 50);
+
+      speakGuideline(`분석이 끝났어요. 검사 위험도는 ${pct}퍼센트입니다. ${reason}`);
       triggerAvatarBubble(`검사 위험도 ${pct}%입니다!`);
     } catch (err) {
       console.error(err);
       alert('보이스피싱 검사 도중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       checkBtn.disabled = false;
-      checkBtn.textContent = '🔍 피싱 위험도 검사';
+      checkBtn.textContent = '🔍 분석하기';
     }
   }
 
@@ -2717,7 +2801,7 @@
         </div>
       `;
       previewArea.classList.remove('hidden');
-      speakGuideline('사진이 추가되었습니다. 피싱 위험도 검사 버튼을 눌러보세요.');
+      speakGuideline('사진이 추가되었습니다. 분석하기 버튼을 눌러보세요.');
     };
     reader.readAsDataURL(file);
   };
@@ -2737,7 +2821,7 @@
       </div>
     `;
     previewArea.classList.remove('hidden');
-    speakGuideline('사진이 촬영되었습니다. 피싱 위험도 검사 버튼을 눌러보세요.');
+    speakGuideline('사진이 촬영되었습니다. 분석하기 버튼을 눌러보세요.');
   };
 
   window.clearPhishingPhoto = function() {
