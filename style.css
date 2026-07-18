@@ -1291,3 +1291,54 @@ button { font-family: inherit; cursor: pointer; }
 .mini-item .dot { width: 6px; height: 6px; border-radius: 50%; background: #c49a3c; }
 .mini-badge { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 6px; font-weight: 700; color: #fff; flex-shrink: 0; }
 .mini-check { width: 26px; height: 26px; border-radius: 50%; background: #5cb85c; margin: auto; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 700; }
+
+/* Interactive Guide System Styles */
+.guide-image-placeholder {
+  width: 100%;
+  max-width: 300px;
+  height: 200px;
+  background: #f0f0f0;
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  margin: 16px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  font-size: calc(14px * var(--font-scale, 1));
+  font-weight: 600;
+  text-align: center;
+  padding: 20px;
+}
+.guide-step-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+.btn-next-step {
+  background: #4a90d9;
+  color: #fff;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: calc(18px * var(--font-scale, 1));
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(74, 144, 217, 0.3);
+  transition: background 0.2s;
+}
+.btn-next-step:hover { background: #3b7cbd; }
+.btn-help-step {
+  background: #fff;
+  color: #e74c3c;
+  border: 2px solid #e74c3c;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: calc(18px * var(--font-scale, 1));
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-help-step:hover { background: #fdf2f1; }
+.step-item.hidden-step { display: none !important; }

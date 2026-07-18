@@ -1093,6 +1093,119 @@
             "개인 정보가 담긴 서류이니 다운로드 후 다른 사람에게 함부로 보내지 마세요!"
         ]
     },
+
+  // =============================================
+  // 사진 및 카메라 (멀티모달 Gemini 연동)
+  // =============================================
+  function handlePhotoUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      showPhotoPreview(e.target.result);
+      analyzeImageWithGemini(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function showPhotoPreview(base64Data) {
+    const area = document.getElementById('photo-preview-area');
+    area.classList.remove('hidden');
+    area.innerHTML = `
+      <div class="photo-preview-wrapper" style="text-align: center;">
+        <img src="${base64Data}" alt="업로드된 사진" class="photo-preview-img" style="max-height: 250px; border-radius: 8px;">
+        <p id="photo-analysis-status" class="photo-preview-label" style="font-weight: bold; margin-top: 10px; color: #4a90d9;">
+          손자가 열심히 화면을 분석하고 있어요... 🧐
+        </p>
+        <button class="action-btn" onclick="clearPhoto()" style="margin-top:0.8rem;padding:0.6rem 1rem;">🗑️ 사진 지우기</button>
+        <div id="photo-analysis-result" style="margin-top: 15px; padding: 15px; background: #fdf9f2; border-radius: 8px; border: 1px solid #f0e0c0; text-align: left; display: none;"></div>
+      </div>`;
+    speakGuideline('사진을 받았어요! 어디를 누르셔야 할지 손자가 확인해 볼게요.');
+    triggerAvatarBubble('사진을 분석 중이에요! 잠시만 기다려주세요.');
+  }
+
+  function clearPhoto() {
+    document.getElementById('photo-preview-area').classList.add('hidden');
+    document.getElementById('photo-preview-area').innerHTML = '';
+    document.getElementById('photo-upload').value = '';
+  }
+
+  async function openCamera() {
+    const area  = document.getElementById('camera-area');
+    const video = document.getElementById('camera-video');
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+      video.srcObject = cameraStream;
+      area.classList.remove('hidden');
+      speakGuideline('카메라가 켜졌어요. 촬영 버튼을 눌러 사진을 찍어보세요.');
+    } catch (e) {
+      alert('할머니, 할아버지! 카메라 사용 권한이 필요해요. 브라우저에서 카메라 허용을 눌러주세요.');
+    }
+  }
+
+  function capturePhoto() {
+    const video  = document.getElementById('camera-video');
+    const canvas = document.getElementById('camera-canvas');
+    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const imgData = canvas.toDataURL('image/jpeg');
+    closeCamera();
+    showPhotoPreview(imgData);
+    analyzeImageWithGemini(imgData);
+  }
+
+  function closeCamera() {
+    if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+    document.getElementById('camera-area').classList.add('hidden');
+  }
+
+  async function analyzeImageWithGemini(base64Data) {
+    try {
+      const base64Image = base64Data.split(',')[1];
+      const promptText = "너는 눈이 침침하신 할머니, 할아버지를 도와드리는 인공지능 손주야. 할아버지가 올려주신 스마트폰/기기 화면 캡처 사진을 정밀하게 분석해서, 다음 단계로 넘어가기 위해 '지금 이 화면에서 정확히 어떤 버튼이나 글자를 마우스나 손가락으로 클릭해야 하는지' 위치와 모양을 묘사하며 아주 다정하고 알기 쉽게 설명해 줘. 문장 끝에는 무조건 '할머니, 할아버지!'를 붙여줘.";
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: promptText },
+              { inline_data: { mime_type: "image/jpeg", data: base64Image } }
+            ]
+          }],
+          generationConfig: { temperature: 0.4 }
+        })
+      });
+      
+      if (!response.ok) throw new Error('API Request Failed');
+      const data = await response.json();
+      const analysisText = data.candidates[0].content.parts[0].text;
+      
+      const statusEl = document.getElementById('photo-analysis-status');
+      const resultEl = document.getElementById('photo-analysis-result');
+      
+      if(statusEl) statusEl.textContent = '✅ 분석이 완료되었어요!';
+      if(resultEl) {
+        resultEl.style.display = 'block';
+        resultEl.innerHTML = `<strong>손자의 설명:</strong><br><span style="line-height: 1.6;">${analysisText.replace(/\n/g, '<br>')}</span>`;
+      }
+      
+      speakGuideline(analysisText);
+      triggerAvatarBubble('설명을 띄워드렸어요! 천천히 읽어보세요.');
+      
+    } catch (err) {
+      console.error('Gemini Vision Error:', err);
+      const statusEl = document.getElementById('photo-analysis-status');
+      if(statusEl) {
+        statusEl.textContent = '❌ 사진을 분석하는데 문제가 생겼어요.';
+        statusEl.style.color = '#e74c3c';
+      }
+      triggerAvatarBubble('사진을 보는 중에 문제가 생겼어요. 다시 한 번 올려주시겠어요?');
+      speakGuideline('앗, 오류가 발생했어요. 다시 사진을 올려주세요.');
+    }
+  }
+
     "atm": {
         "icon": "🏧",
         "appName": "은행 ATM 현금 인출기",
@@ -1278,10 +1391,23 @@
     const notFoundEl = document.getElementById('guide-not-found');
     const loadingEl  = document.getElementById('guide-loading');
 
+    const keywordMap = {
+      '키오스크': ['키오스크', '주문기', '무인기', '무인단말기', '기계 주문', '터치화면'],
+      '등본': ['등본', '주민등록', '초본', '증명서', '서류발급', '무인발급기'],
+      'atm': ['atm', '에이티엠', '은행', '돈', '출금', '입금', '송금', '보내기', '이체', '현금', '통장'],
+      '식당': ['식당', '예약', '맛집', '웨이팅', '식사', '밥집', '테이블링', '캐치테이블'],
+      '카카오': ['카카오', '카톡', '메시지', '문자', '채팅', '단톡방', '사진 보내기'],
+      '배달': ['배달', '주문', '치킨', '피자', '짜장면', '음식 배달', '배민', '요기요', '쿠팡이츠']
+    };
+
     let match = null;
-    for (const key of Object.keys(guideDatabase)) {
-      const nk = normalizeKey(key);
-      if (nq.includes(nk) || nk.includes(nq)) { match = guideDatabase[key]; break; }
+    outerLoop: for (const [key, keywords] of Object.entries(keywordMap)) {
+      for (const kw of keywords) {
+        if (nq.includes(normalizeKey(kw))) {
+          match = guideDatabase[key];
+          break outerLoop;
+        }
+      }
     }
 
     if (match) {
@@ -1321,30 +1447,47 @@
     }
   }
 
+  let currentGuideStepIndex = 0;
+  let totalGuideSteps = 0;
+
   function renderGuide(match) {
     const resultEl = document.getElementById('guide-result');
+    currentGuideStepIndex = 0;
+    totalGuideSteps = match.steps.length;
     
-    // Create the new result-card HTML structure
+    // Create the interactive result-card HTML structure
     resultEl.innerHTML = `
       <div class="result-card" style="margin-top: 10px;">
         <span class="match-badge">${match.appName} 사용법 안내</span>
         <div class="app-name">${match.icon} ${match.appName}</div>
         <div class="app-desc">${match.intro}</div>
         <div class="howto-title">이렇게 따라해 보세요</div>
-        <ol class="step-list">
-          ${match.steps.map(s => `
-            <li class="step-item">
-              <span class="step-num">${s.num}</span>
-              <span class="step-text">
-                <strong>${s.title}</strong><br>
-                ${s.desc}
-              </span>
-              <span class="step-visual">
-                ${s.mockupHTML || generateGenericMockup(s.title, s.emoji || '✨', match.appName)}
-              </span>
-            </li>
+        <div class="step-list" id="interactive-step-list">
+          ${match.steps.map((s, idx) => `
+            <div class="step-item ${idx !== 0 ? 'hidden-step' : ''}" id="guide-step-item-${idx}" style="flex-direction: column;">
+              <div style="display:flex; gap:14px; width: 100%;">
+                <span class="step-num">${s.num}</span>
+                <span class="step-text" style="flex:1;">
+                  <strong>${s.title}</strong><br>
+                  ${s.desc}
+                </span>
+              </div>
+              
+              <div class="guide-image-placeholder">
+                [실제 앱/기기 화면 이미지 플레이스홀더 박스]<br>
+                (${match.appName} - ${s.title})
+              </div>
+              
+              <div class="guide-step-actions">
+                ${idx < totalGuideSteps - 1 ? 
+                  `<button class="btn-next-step" onclick="nextGuideStep(${idx})">다음 단계로 넘어가기 👉</button>` : 
+                  `<button class="btn-next-step" onclick="alert('모든 단계를 완료했습니다! 참 잘하셨어요 👏');">완료하기 ✨</button>`
+                }
+                <button class="btn-help-step" onclick="helpGuideStep()">이해가 안 돼서 모르겠수 😥</button>
+              </div>
+            </div>
           `).join('')}
-        </ol>
+        </div>
         ${match.warnings && match.warnings.length > 0 ? `
         <div class="cautions-box">
           <div class="caution-title">할머니, 할아버지 이것만은 주의하세요!</div>
@@ -1362,20 +1505,32 @@
     triggerAvatarBubble(`${match.icon} 안내해 드릴게요!`);
   }
 
-  function generateGenericMockup(title, emoji, appName) {
-    return `
-      <div class="mini-phone">
-        <div class="mini-screen">
-          <div class="mini-status">${appName}</div>
-          <div class="mini-body" style="justify-content:center; align-items:center;">
-            <div style="font-size:24px; margin-bottom:10px; animation: target-pulse 1s infinite alternate;" class="hifi-target-sm">${emoji}</div>
-            <div class="mini-title" style="text-align:center; word-break:keep-all;">${title}</div>
-            <div class="finger-cursor" style="font-size:16px; margin-top:5px;">👆</div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
+  window.nextGuideStep = function(currentIndex) {
+    const currentEl = document.getElementById(`guide-step-item-${currentIndex}`);
+    const nextEl = document.getElementById(`guide-step-item-${currentIndex + 1}`);
+    
+    if (currentEl) currentEl.classList.add('hidden-step');
+    if (nextEl) {
+      nextEl.classList.remove('hidden-step');
+      triggerAvatarBubble(`${currentIndex + 2}단계입니다. 천천히 따라와 주세요!`);
+      speakGuideline(`다음 단계입니다.`);
+      nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  window.helpGuideStep = function() {
+    triggerAvatarBubble('할머니, 할아버지! 막히신 화면을 휴대폰으로 찰칵 캡처하시거나, 다른 폰으로 이 화면을 사진 찍어서 아래 버튼으로 올려주세요! 손주가 어디를 눌러야 하는지 짚어드릴게요!');
+    speakGuideline('막히신 화면을 사진으로 찍어서 올려주시면, 제가 어디를 눌러야 할지 짚어드릴게요!');
+    
+    // Auto scroll to camera/photo upload area
+    const mediaSection = document.querySelector('.guide-media-section');
+    if(mediaSection) {
+      const advancedSearch = document.getElementById('guide-advanced-search');
+      if(advancedSearch) advancedSearch.classList.remove('hidden');
+      mediaSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      mediaSection.style.animation = 'target-pulse 1s 3 alternate';
+    }
+  };
 
   async function callGeminiForIntent(query) {
     const prompt = `사용자가 "${query}" 라고 요청했어. 이 요청이 '단순 사용법 안내'인지, 아니면 '음악 틀기, 동영상 보기 등 특정 앱이나 사이트로 직접 이동(검색)해 주기를 원하는 행동'인지 판단해.
