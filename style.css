@@ -105,8 +105,10 @@ button { font-family: inherit; cursor: pointer; }
   box-shadow: none;
   position: fixed;
   top: 0;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
+  max-width: 800px;
   z-index: 1000;
   box-sizing: border-box;
 }
@@ -122,10 +124,6 @@ button { font-family: inherit; cursor: pointer; }
   align-items: center;
   height: 100px;
   user-select: none;
-  position: fixed;
-  top: 15px;
-  left: 20px;
-  z-index: 1001;
 }
 .logo-img {
   height: 100%;
