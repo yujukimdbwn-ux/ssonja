@@ -392,7 +392,7 @@
   <script>
   const GEMINI_API_KEY = "AQ.Ab8RN" + "6IUdUPFSEuaVVkFFU1imUv3422BpXmFfvgepZ5vFrPq0A";
   const PUBLIC_DATA_API_KEY = "da219b0fd49231dc00868e5ac5e3127630cf9c572d45287363283763e37e7fbe";
-  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
   // 프록시 호출을 먼저 시도하고, 로컬 환경 등으로 인해 실패하면 직접 구글 API로 호출하는 폴백 함수
   async function callGeminiProxyOrDirect(payload) {
@@ -424,7 +424,7 @@
         body = payload;
       }
       
-      const directUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+      const directUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
       const res = await fetch(directUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
