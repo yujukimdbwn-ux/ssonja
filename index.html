@@ -2637,9 +2637,13 @@
   // =============================================
   function toggleGuideSearch() {
     const searchArea = document.getElementById('guide-advanced-search');
+    const inputEl = document.getElementById('guide-input');
     if (searchArea.classList.contains('hidden')) {
       searchArea.classList.remove('hidden');
       triggerAvatarBubble('궁금하신 점을 검색창에 입력하거나 마이크 버튼을 눌러 말씀해 주세요.');
+      if (inputEl) {
+        setTimeout(() => inputEl.focus(), 100);
+      }
     } else {
       searchArea.classList.add('hidden');
     }
