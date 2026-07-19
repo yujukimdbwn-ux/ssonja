@@ -57,26 +57,26 @@
     </div>
   </div>
 
-  <!-- 헤더 -->
-  <header class="app-header">
-    <div class="logo" id="app-logo" onclick="showScreen('home-screen')" role="button" tabindex="0">
-      <img src="logo.png" alt="쏜자 로고" class="logo-img"
-        onerror="this.outerHTML='<span class=\'logo-text\'>{쏜자}</span>';">
-    </div>
-    <button class="settings-btn" id="settings-toggle-btn" aria-label="설정 열기">
-      <svg class="icon-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"></circle>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-      </svg>
-      <span>설정</span>
-    </button>
-  </header>
-
   <!-- 메인 컨테이너 -->
   <main class="app-container">
 
     <!-- 1. 홈 화면 -->
     <section id="home-screen" class="screen active">
+      <!-- 헤더 (홈 화면에 고정 배치, 스크롤하면 위로 같이 밀려남) -->
+      <header class="app-header">
+        <div class="logo" id="app-logo" onclick="showScreen('home-screen')" role="button" tabindex="0">
+          <img src="logo.png" alt="쏜자 로고" class="logo-img"
+            onerror="this.outerHTML='<span class=\'logo-text\'>{쏜자}</span>';">
+        </div>
+        <button class="settings-btn" id="settings-toggle-btn" aria-label="설정 열기">
+          <svg class="icon-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>설정</span>
+        </button>
+      </header>
+
       <div class="home-welcome-header">
         <div class="welcome-avatar-wrapper" onclick="triggerAvatarSpeech('환영')" role="button" tabindex="0">
           <div class="avatar-img-wrapper mini-avatar" id="home-mini-avatar">
@@ -106,10 +106,31 @@
           <span class="menu-text">사용법 가이드</span>
           <span class="menu-desc">키오스크·ATM·카카오톡 사용법을 차근차근 알려드려요.</span>
         </button>
-        <button class="menu-card" id="btn-radio" onclick="showScreen('radio-screen')">
-          <span class="menu-icon">📻</span>
-          <span class="menu-text">어르신 행복 라디오</span>
-          <span class="menu-desc">트로트, 7080, 뉴스, 클래식을 주먹만한 버튼으로 간편하게 들으실 수 있어요.</span>
+        <button class="menu-card beatbox-card" id="btn-radio" onclick="showScreen('radio-screen')">
+          <!-- 붐박스 손잡이 -->
+          <div class="boombox-handle"></div>
+          <div class="boombox-body">
+            <!-- 왼쪽 스피커 -->
+            <div class="boombox-speaker">
+              <div class="speaker-inner"></div>
+            </div>
+            <!-- 중앙 LCD 조작부 -->
+            <div class="boombox-center">
+              <div class="boombox-lcd">
+                <span class="lcd-dot">● LIVE</span>
+                <span class="lcd-text">추억 라디오</span>
+              </div>
+              <div class="boombox-dial-row">
+                <div class="boombox-dial"></div>
+                <div class="boombox-dial"></div>
+              </div>
+            </div>
+            <!-- 오른쪽 스피커 -->
+            <div class="boombox-speaker">
+              <div class="speaker-inner"></div>
+            </div>
+          </div>
+          <span class="menu-desc" style="margin-top: 14px; text-align: center; color: #b2bec3; font-weight: bold;">트로트, 7080, 발라드, 클래식을 신나게 들어요!</span>
         </button>
       </div>
     </section>
@@ -295,7 +316,7 @@
     <!-- 5. 어르신 행복 라디오 -->
     <section id="radio-screen" class="screen">
       <button class="back-btn" onclick="showScreen('home-screen')">⬅️ 뒤로 가기</button>
-      <h1 class="screen-title" style="text-align: center; margin-top: 10px; font-size: 2.3rem;">📻 어르신 행복 라디오</h1>
+      <h1 class="screen-title" style="text-align: center; margin-top: 10px; font-size: 2.3rem;">📻 추억 라디오</h1>
       
       <div class="screen-content" style="padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; height: calc(100vh - 200px); max-height: 550px; min-height: 400px; box-sizing: border-box; gap: 1rem;">
         
@@ -993,7 +1014,7 @@
       'home-screen':       ['홈 화면으로 돌아왔어요.', '홈 화면입니다. 원하시는 서비스를 눌러보세요.'],
       'translator-screen': ['어떤 요즘말이 궁금하세요?', '요즘말 번역기입니다. 모르시는 신조어를 입력하시거나 말씀해 주세요.'],
       'dictionary-screen': ['무엇을 도와드릴까요?', '사용법 가이드입니다. 키오스크, ATM, 카카오톡 등 사용법을 알려드려요.'],
-      'radio-screen':      ['행복 라디오를 켰어요 📻', '어르신 행복 라디오입니다. 원하시는 채널 버튼을 눌러 청취해 보세요.'],
+      'radio-screen':      ['추억 라디오를 켰어요 📻', '추억 라디오입니다. 원하시는 채널 버튼을 눌러 청취해 보세요.'],
     };
     if (msgs[screenId]) {
       triggerAvatarBubble(msgs[screenId][0]);
