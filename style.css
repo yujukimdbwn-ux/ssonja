@@ -953,22 +953,7 @@ button { font-family: inherit; cursor: pointer; }
 .not-found-text  { font-size: 1.25rem; font-weight: 700; margin-bottom: .5rem; }
 .not-found-sub   { font-size: 1rem; color: var(--text-sub); }
 
-/* ==================================================
-   11. 보이스피싱 검출기
-   ================================================== */
-.phishing-result {
-  margin-top: 1.2rem;
-  border-radius: var(--radius-md);
-  border: 3px solid;
-  padding: 1.3rem 1.5rem;
-  font-size: 1.1rem;
-  font-weight: 700;
-  line-height: 1.6;
-  animation: fadeIn .3s ease-out;
-}
-.phishing-safe   { border-color: #2ECC71; background: #EAFAF1; color: #1A5631; }
-.phishing-caution{ border-color: #F39C12; background: #FEF9E7; color: #784212; }
-.phishing-danger { border-color: #E74C3C; background: #FDEDEC; color: #922B21; }
+
 
 /* ==================================================
    12. 우측 하단 고정 캐릭터
@@ -1582,37 +1567,7 @@ button { font-family: inherit; cursor: pointer; }
   100% { transform: scale(1); }
 }
 
-.phishing-upload-box {
-  width: 100%;
-  border: 3px dashed var(--border);
-  background: #fff;
-  border-radius: var(--radius-md);
-  padding: 2rem 1.5rem;
-  text-align: center;
-  cursor: pointer;
-  transition: border-color .3s, background-color .3s;
-  box-sizing: border-box;
-}
-.phishing-upload-box:hover {
-  border-color: #c49a3c;
-  background: #fdfcf7;
-}
 
-.phishing-progress-bar-container {
-  width: 100%;
-  background: #e0e0e0;
-  border-radius: 10px;
-  height: 20px;
-  overflow: hidden;
-  margin: 15px 0;
-  position: relative;
-}
-.phishing-progress-bar-fill {
-  height: 100%;
-  border-radius: 10px;
-  width: 0%;
-  transition: width 1s ease-in-out;
-}
 
 /* ==================================================
    14. 좌우 감성 데코레이션 패널 (데스크톱 전용)
