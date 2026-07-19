@@ -8,18 +8,27 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'GEMINI_API_KEY is not configured in Vercel.' });
   }
 
-  const { prompt, generationConfig } = req.body;
-  if (!prompt) {
-    return res.status(400).json({ error: 'Prompt is required' });
+  const { prompt, contents, generationConfig } = req.body;
+  
+  let body;
+  if (contents) {
+    // If client sends the full contents structure, use it directly (e.g. for vision requests)
+    body = {
+      contents,
+      generationConfig: generationConfig || { temperature: 0.2 }
+    };
+  } else if (prompt) {
+    // Fallback for simple text prompts
+    body = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: generationConfig || { temperature: 0.2, responseMimeType: "application/json" }
+    };
+  } else {
+    return res.status(400).json({ error: 'Either prompt or contents is required' });
   }
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
   
-  const body = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: generationConfig || { temperature: 0.2, responseMimeType: "application/json" }
-  };
-
   try {
     const response = await fetch(url, {
       method: 'POST',
