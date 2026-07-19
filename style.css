@@ -1901,7 +1901,7 @@ button { font-family: inherit; cursor: pointer; }
   50% { opacity: 0; }
 }
 .lcd-text {
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 900;
   letter-spacing: 0.5px;
   white-space: nowrap;
