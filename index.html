@@ -394,6 +394,50 @@
   const PUBLIC_DATA_API_KEY = "da219b0fd49231dc00868e5ac5e3127630cf9c572d45287363283763e37e7fbe";
   const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
+  // 프록시 호출을 먼저 시도하고, 로컬 환경 등으로 인해 실패하면 직접 구글 API로 호출하는 폴백 함수
+  async function callGeminiProxyOrDirect(payload) {
+    try {
+      const res = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+      throw new Error(`Proxy status: ${res.status}`);
+    } catch (proxyErr) {
+      console.warn('백엔드 프록시 호출 실패, 구글 API 직접 호출 시도:', proxyErr);
+      
+      let body;
+      if (payload.contents) {
+        body = {
+          contents: payload.contents,
+          generationConfig: payload.generationConfig
+        };
+      } else if (payload.prompt) {
+        body = {
+          contents: [{ parts: [{ text: payload.prompt }] }],
+          generationConfig: payload.generationConfig
+        };
+      } else {
+        body = payload;
+      }
+      
+      const directUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+      const res = await fetch(directUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`구글 API 직접 호출 오류 (${res.status}): ${errText}`);
+      }
+      return await res.json();
+    }
+  }
+
   // =============================================
   // 전역 상태
   // =============================================
@@ -827,14 +871,7 @@
       generationConfig: { temperature: 0.7, maxOutputTokens: 300 }
     };
 
-    const res = await fetch('/api/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-
-    if (!res.ok) throw new Error(`Gemini API 오류: ${res.status}`);
-    const data = await res.json();
+    const data = await callGeminiProxyOrDirect(body);
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) throw new Error('응답 없음');
     return text.trim();
@@ -849,14 +886,7 @@
       generationConfig: { temperature: 0.5, maxOutputTokens: 200 }
     };
 
-    const res = await fetch('/api/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-
-    if (!res.ok) throw new Error(`Gemini API Fallback 오류: ${res.status}`);
-    const data = await res.json();
+    const data = await callGeminiProxyOrDirect(body);
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) throw new Error('응답 없음');
     return text.trim();
@@ -1639,22 +1669,15 @@
       
       const promptText = "너는 눈이 침침하신 할머니, 할아버지를 도와드리는 인공지능 손주야. 할아버지가 올려주신 스마트폰/기기 화면 캡처 사진을 정밀하게 분석해서, 다음 단계로 넘어가기 위해 '지금 이 화면에서 정확히 어떤 버튼이나 글자를 마우스나 손가락으로 클릭해야 하는지' 위치와 모양을 묘사하며 아주 다정하고 알기 쉽게 설명해 줘. 문장 끝에는 무조건 '할머니, 할아버지!'를 붙여줘.";
       
-      const response = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { text: promptText },
-              { inlineData: { mimeType: mimeType, data: base64Image } }
-            ]
-          }],
-          generationConfig: { temperature: 0.4 }
-        })
+      const data = await callGeminiProxyOrDirect({
+        contents: [{
+          parts: [
+            { text: promptText },
+            { inlineData: { mimeType: mimeType, data: base64Image } }
+          ]
+        }],
+        generationConfig: { temperature: 0.4 }
       });
-      
-      if (!response.ok) throw new Error('API Request Failed');
-      const data = await response.json();
       const analysisText = data.candidates[0].content.parts[0].text;
       
       const statusEl = document.getElementById('photo-analysis-status');
@@ -2616,14 +2639,7 @@
       generationConfig: { temperature: 0.2, responseMimeType: "application/json" }
     };
 
-    const res = await fetch('/api/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-
-    if (!res.ok) throw new Error('API Error');
-    const data = await res.json();
+    const data = await callGeminiProxyOrDirect(body);
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) throw new Error('No Data');
     return JSON.parse(text.trim());
@@ -2678,7 +2694,7 @@
 입력된 내용: "${text || ''}"
 `;
 
-    let reqBody;
+    let payload;
     if (base64Data) {
       let mimeType = "image/jpeg";
       let base64DataOnly = base64Data;
@@ -2690,7 +2706,7 @@
           mimeType = mimeMatch[1];
         }
       }
-      reqBody = JSON.stringify({
+      payload = {
         contents: [{
           parts: [
             { text: promptText },
@@ -2698,31 +2714,14 @@
           ]
         }],
         generationConfig: { temperature: 0.2 }
-      });
+      };
     } else {
-      reqBody = JSON.stringify({
+      payload = {
         contents: [{ parts: [{ text: promptText }] }]
-      });
+      };
     }
 
-    const response = await fetch('/api/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: reqBody
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      let parsedErr = errText;
-      try {
-        const jsonErr = JSON.parse(errText);
-        if (jsonErr.error && jsonErr.error.message) {
-          parsedErr = jsonErr.error.message;
-        }
-      } catch(e) {}
-      throw new Error(`API 오류 (${response.status}): ${parsedErr}`);
-    }
-    const data = await response.json();
+    const data = await callGeminiProxyOrDirect(payload);
     const resultText = data.candidates[0].content.parts[0].text;
     return resultText;
   }
