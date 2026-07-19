@@ -105,6 +105,12 @@
           <span class="menu-icon">📱</span>
           <span class="menu-text">사용법 가이드</span>
           <span class="menu-desc">키오스크·ATM·카카오톡 사용법을 차근차근 알려드려요.</span>
+        </button>
+        <button class="menu-card" id="btn-radio" onclick="showScreen('radio-screen')">
+          <span class="menu-icon">📻</span>
+          <span class="menu-text">어르신 행복 라디오</span>
+          <span class="menu-desc">트로트, 7080, 뉴스, 클래식을 주먹만한 버튼으로 간편하게 들으실 수 있어요.</span>
+        </button>
       </div>
     </section>
 
@@ -283,6 +289,56 @@
         <div class="not-found-icon">🤔</div>
         <p class="not-found-text">할머니, 할아버지! 원하시는 내용을 찾지 못했어요.</p>
         <p class="not-found-sub">다른 검색어를 입력해 보세요!</p>
+      </div>
+    </section>
+
+    <!-- 5. 어르신 행복 라디오 -->
+    <section id="radio-screen" class="screen">
+      <button class="back-btn" onclick="showScreen('home-screen')">⬅️ 뒤로 가기</button>
+      <h1 class="screen-title" style="text-align: center; margin-top: 10px; font-size: 2.3rem;">📻 어르신 행복 라디오</h1>
+      
+      <div class="screen-content" style="padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; height: calc(100vh - 200px); max-height: 550px; min-height: 400px; box-sizing: border-box; gap: 1rem;">
+        
+        <!-- 2x2 주먹만한 카드 그리드 -->
+        <div class="radio-grid" style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1.2rem; flex: 1;">
+          <button class="radio-card trot" onclick="playRadioChannel('trot')" style="background: #fff9db; border: 3px solid #f59f00; border-radius: 20px; box-shadow: 0 6px 0 #f59f00; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; transition: all 0.1s;">
+            <span style="font-size: 3rem;">💃</span>
+            <span style="font-size: 1.4rem; font-weight: 900; color: #e67e22;">신나는 트로트</span>
+          </button>
+          <button class="radio-card 7080" onclick="playRadioChannel('7080')" style="background: #ebfbee; border: 3px solid #37b24d; border-radius: 20px; box-shadow: 0 6px 0 #37b24d; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; transition: all 0.1s;">
+            <span style="font-size: 3rem;">🎸</span>
+            <span style="font-size: 1.4rem; font-weight: 900; color: #2f9e44;">추억의 7080</span>
+          </button>
+          <button class="radio-card news" onclick="playRadioChannel('news')" style="background: #e7f5ff; border: 3px solid #1c7ed6; border-radius: 20px; box-shadow: 0 6px 0 #1c7ed6; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; transition: all 0.1s;">
+            <span style="font-size: 3rem;">📻</span>
+            <span style="font-size: 1.4rem; font-weight: 900; color: #1971c2;">아침 뉴스</span>
+          </button>
+          <button class="radio-card classic" onclick="playRadioChannel('classic')" style="background: #f8f0fc; border: 3px solid #ae3ec9; border-radius: 20px; box-shadow: 0 6px 0 #ae3ec9; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; transition: all 0.1s;">
+            <span style="font-size: 3rem;">🎻</span>
+            <span style="font-size: 1.4rem; font-weight: 900; color: #9c36b5;">마음 편한 클래식</span>
+          </button>
+        </div>
+
+        <!-- 하단 제어 바 -->
+        <div class="radio-control-bar" style="background: var(--card); border: 3.5px solid var(--border); border-radius: 20px; padding: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+          <div style="text-align: center;">
+            <span style="font-size: 1.1rem; color: #7f8c8d; font-weight: bold; display: block; margin-bottom: 2px;">지금 나오는 방송</span>
+            <span id="radio-current-channel" style="font-size: 1.8rem; font-weight: 900; color: var(--text); display: block; min-height: 2.2rem; line-height: 1.2;">재생 중인 채널 없음 💤</span>
+          </div>
+          
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 5px;">
+            <div style="display: flex; gap: 0.8rem;">
+              <button onclick="pauseRadio()" style="font-size: 1.8rem; padding: 0.6rem 1.2rem; border-radius: 12px; border: 2px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: bold;">⏸️ 멈춤</button>
+              <button onclick="resumeRadio()" style="font-size: 1.8rem; padding: 0.6rem 1.2rem; border-radius: 12px; border: 2px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: bold;">▶️ 재생</button>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 8px; flex: 1; justify-content: flex-end; max-width: 200px;">
+              <span style="font-size: 1.3rem;">🔊</span>
+              <input type="range" id="radio-volume" min="0" max="1" step="0.05" value="0.7" oninput="changeRadioVolume(this.value)" style="width: 100%; cursor: pointer;">
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -937,12 +993,25 @@
       'home-screen':       ['홈 화면으로 돌아왔어요.', '홈 화면입니다. 원하시는 서비스를 눌러보세요.'],
       'translator-screen': ['어떤 요즘말이 궁금하세요?', '요즘말 번역기입니다. 모르시는 신조어를 입력하시거나 말씀해 주세요.'],
       'dictionary-screen': ['무엇을 도와드릴까요?', '사용법 가이드입니다. 키오스크, ATM, 카카오톡 등 사용법을 알려드려요.'],
+      'radio-screen':      ['행복 라디오를 켰어요 📻', '어르신 행복 라디오입니다. 원하시는 채널 버튼을 눌러 청취해 보세요.'],
     };
     if (msgs[screenId]) {
       triggerAvatarBubble(msgs[screenId][0]);
       speakGuideline(msgs[screenId][1]);
     }
     if (screenId === 'translator-screen') resetTranslatorResult();
+
+    // 다른 화면으로 이동할 때 재생 중이던 라디오 정지 및 볼륨 초기화
+    if (screenId !== 'radio-screen' && currentRadioAudio) {
+      currentRadioAudio.pause();
+      currentRadioAudio.src = "";
+      currentRadioAudio = null;
+      activeChannelId = null;
+      document.getElementById('radio-current-channel').textContent = "재생 중인 채널 없음 💤";
+      document.querySelectorAll('.radio-card').forEach(card => {
+        card.style.borderWidth = '3px';
+      });
+    }
   }
 
   async function searchAppStore(query) {
@@ -2830,7 +2899,7 @@
     const msgs = [
       '할머니, 할아버지! 부르셨나요? 언제든 눌러주세요.',
       '글씨 크기가 마음에 안 드시면 설정에서 조절해 보세요.',
-      '의심스러운 문자는 보이스피싱 검출기에 넣어보세요.',
+      '신나는 트로트나 편안한 클래식이 듣고 싶으시면 행복 라디오를 켜보세요!',
       '카카오톡·키오스크 사용법은 사용법 가이드에서 확인하세요!',
       '모르는 요즘 단어가 있으면 AI 번역기에 물어보세요!',
     ];
@@ -2849,6 +2918,93 @@
       triggerAvatarBubble('도움이 필요하신가요?');
     }
   }
+
+  // =============================================
+  // 어르신 행복 라디오 기능
+  // =============================================
+  let currentRadioAudio = null;
+  const radioChannels = {
+    trot: {
+      name: "💃 신나는 트로트",
+      url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+      msg: "신나는 트로트 채널을 들려드릴게요!"
+    },
+    7080: {
+      name: "🎸 추억의 7080",
+      url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+      msg: "추억의 7080 채널을 들려드릴게요!"
+    },
+    news: {
+      name: "📻 아침 뉴스",
+      url: "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service",
+      msg: "실시간 아침 뉴스를 들려드릴게요!"
+    },
+    classic: {
+      name: "🎻 마음 편한 클래식",
+      url: "https://stream.srg-ssr.ch/m/rsc_de/mp3_128",
+      msg: "마음이 편해지는 클래식 음악을 들려드릴게요!"
+    }
+  };
+  let activeChannelId = null;
+
+  window.playRadioChannel = function(channelId) {
+    const ch = radioChannels[channelId];
+    if (!ch) return;
+
+    if (currentRadioAudio) {
+      currentRadioAudio.pause();
+      currentRadioAudio.src = "";
+      currentRadioAudio = null;
+    }
+
+    activeChannelId = channelId;
+    currentRadioAudio = new Audio(ch.url);
+    const volumeSlider = document.getElementById('radio-volume');
+    if (volumeSlider) {
+      currentRadioAudio.volume = parseFloat(volumeSlider.value);
+    }
+    
+    document.getElementById('radio-current-channel').textContent = ch.name + " 🎶";
+    
+    document.querySelectorAll('.radio-card').forEach(card => {
+      card.style.borderWidth = '3px';
+    });
+    const activeCard = document.querySelector(`.radio-card.${channelId}`);
+    if (activeCard) {
+      activeCard.style.borderWidth = '6px';
+    }
+
+    triggerAvatarBubble(ch.name + " 재생 시작!");
+    speakGuideline(ch.msg);
+
+    currentRadioAudio.play().catch(err => {
+      console.warn("Audio play failed:", err);
+    });
+  };
+
+  window.pauseRadio = function() {
+    if (currentRadioAudio && !currentRadioAudio.paused) {
+      currentRadioAudio.pause();
+      document.getElementById('radio-current-channel').textContent = radioChannels[activeChannelId]?.name + " (일시정지) ⏸️";
+      triggerAvatarBubble("라디오 일시 정지");
+      speakGuideline("라디오를 잠시 멈췄어요.");
+    }
+  };
+
+  window.resumeRadio = function() {
+    if (currentRadioAudio && currentRadioAudio.paused) {
+      currentRadioAudio.play().catch(err => console.warn(err));
+      document.getElementById('radio-current-channel').textContent = radioChannels[activeChannelId]?.name + " 🎶";
+      triggerAvatarBubble("라디오 재생 재개");
+      speakGuideline("라디오를 다시 재생합니다.");
+    }
+  };
+
+  window.changeRadioVolume = function(val) {
+    if (currentRadioAudio) {
+      currentRadioAudio.volume = parseFloat(val);
+    }
+  };
   </script>
 </body>
 </html>

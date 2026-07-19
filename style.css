@@ -1766,3 +1766,28 @@ button { font-family: inherit; cursor: pointer; }
   100% { transform: scale(1.04); box-shadow: 0 6px 12px rgba(92, 75, 55, 0.12), 0 4px 0 var(--border); }
 }
 
+/* ==================================================
+   15. 어르신 행복 라디오 카드 애니메이션
+   ================================================== */
+.radio-card {
+  transition: transform 0.1s ease, box-shadow 0.1s ease, border-width 0.1s ease;
+}
+.radio-card:hover {
+  transform: translateY(-2px);
+}
+.radio-card:active {
+  transform: translateY(4px) !important;
+}
+.radio-card.trot:active {
+  box-shadow: 0 2px 0 #f59f00 !important;
+}
+.radio-card.7080:active {
+  box-shadow: 0 2px 0 #37b24d !important;
+}
+.radio-card.news:active {
+  box-shadow: 0 2px 0 #1c7ed6 !important;
+}
+.radio-card.classic:active {
+  box-shadow: 0 2px 0 #ae3ec9 !important;
+}
+
