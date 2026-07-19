@@ -307,7 +307,16 @@ button { font-family: inherit; cursor: pointer; }
 }
 .menu-card:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--border); }
 .menu-icon { font-size: 2.5rem; margin-bottom: 0.7rem; }
-.menu-text { font-size: 1.4rem; font-weight: bold; color: var(--text); font-family: 'Gowun Batang', serif; margin-bottom: 0.4rem; }
+.menu-text {
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: #1c120c;
+  font-family: 'Gowun Batang', serif;
+  margin-bottom: 0.4rem;
+}
+.theme-dark .menu-text {
+  color: #ffffff;
+}
 .menu-desc { font-size: 1rem; color: var(--text-sub); line-height: 1.5; }
 
 /* ==================================================
