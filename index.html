@@ -203,6 +203,20 @@
         </div>
       </div>
 
+      <!-- 비속어 경고/확인 카드 -->
+      <div id="translator-profanity-card" class="translator-result-card hidden" style="border-color: #e74c3c; background: #fdf2f2; box-shadow: 0 6px 0 #e74c3c;">
+        <div class="result-header">
+          <span class="result-badge" style="background: #e74c3c; color: white;">⚠️ 비속어 주의</span>
+        </div>
+        <div class="result-meaning" style="font-size: 1.35rem; color: #c0392b; font-weight: bold; margin-bottom: 1.5rem; line-height: 1.5; text-align: center;">
+          이 단어는 비속어이므로 번역을 지원하지 않습니다.<br>그래도 보시겠습니까?
+        </div>
+        <div style="display: flex; gap: 1.2rem; justify-content: center; margin-top: 1rem;">
+          <button id="profanity-yes-btn" style="font-size: 1.6rem; font-weight: bold; padding: 0.8rem 2.5rem; border-radius: 14px; border: 3px solid #27ae60; background: #e8f8f5; color: #27ae60; cursor: pointer; min-width: 100px; box-shadow: 0 4px 0 #27ae60; transition: all 0.1s;" onmousedown="this.style.transform='translateY(4px)'; this.style.boxShadow='none';" onmouseup="this.style.transform='none'; this.style.boxShadow='0 4px 0 #27ae60';">예</button>
+          <button id="profanity-no-btn" style="font-size: 1.6rem; font-weight: bold; padding: 0.8rem 2.5rem; border-radius: 14px; border: 3px solid #c0392b; background: #fdf2f2; color: #c0392b; cursor: pointer; min-width: 100px; box-shadow: 0 4px 0 #c0392b; transition: all 0.1s;" onmousedown="this.style.transform='translateY(4px)'; this.style.boxShadow='none';" onmouseup="this.style.transform='none'; this.style.boxShadow='0 4px 0 #c0392b';">아니오</button>
+        </div>
+      </div>
+
       <!-- 번역기 캐릭터 -->
       <div class="translator-avatar-area">
         <div class="avatar-img-wrapper translator-avatar" id="translator-avatar-char">
@@ -1074,6 +1088,35 @@
     const aiLoading   = document.getElementById('ai-loading');
     const translateBtn = document.getElementById('translate-btn');
 
+    // 비속어 목록
+    const badWords = [
+      '시발', '씨발', '개새', '존나', '썅', '지랄', '병신', '엠창', '새끼', '꺼져', '닥쳐',
+      '미친년', '미친놈', '쌰갈', '시발년', '시발놈', '씨발년', '씨발놈', '썅년', '썅놈'
+    ];
+
+    // 비속어 사전 필터링
+    const isProfanity = badWords.some(w => nq.includes(w));
+    if (isProfanity) {
+      resultCard.classList.add('hidden');
+      const profanityCard = document.getElementById('translator-profanity-card');
+      profanityCard.classList.remove('hidden');
+      triggerAvatarBubble('이 단어는 비속어가 포함되어 있어 주의가 필요해요 ⚠️');
+      
+      // "예" 버튼 클릭 핸들러
+      document.getElementById('profanity-yes-btn').onclick = async () => {
+        profanityCard.classList.add('hidden');
+        await doBypassTranslate(query);
+      };
+      
+      // "아니오" 버튼 클릭 핸들러
+      document.getElementById('profanity-no-btn').onclick = () => {
+        profanityCard.classList.add('hidden');
+        triggerAvatarBubble('네, 다른 단어를 입력해 주세요! 할머니, 할아버지! 😊');
+        speakGuideline('네, 다른 단어를 입력해 주세요! 할머니, 할아버지!');
+      };
+      return;
+    }
+
     // 1단계: 내장 딕셔너리
     const builtin = normalizedDict[nq];
     if (builtin) {
@@ -1129,6 +1172,29 @@
 
     try {
       const aiAnswer = await callGeminiAPI(query);
+      
+      // 만약 AI가 비속어 거부를 반환한 경우 (포스트 필터링)
+      if (aiAnswer.includes('비속어') || aiAnswer.includes('번역하지') || aiAnswer.startsWith('이 단어는 비속어')) {
+        aiLoading.classList.add('hidden');
+        translateBtn.disabled = false;
+        translateBtn.textContent = '🔍 번역하기';
+        
+        const profanityCard = document.getElementById('translator-profanity-card');
+        profanityCard.classList.remove('hidden');
+        triggerAvatarBubble('이 단어는 비속어가 포함되어 있어 주의가 필요해요 ⚠️');
+        
+        document.getElementById('profanity-yes-btn').onclick = async () => {
+          profanityCard.classList.add('hidden');
+          await doBypassTranslate(query);
+        };
+        document.getElementById('profanity-no-btn').onclick = () => {
+          profanityCard.classList.add('hidden');
+          triggerAvatarBubble('네, 다른 단어를 입력해 주세요! 할머니, 할아버지! 😊');
+          speakGuideline('네, 다른 단어를 입력해 주세요! 할머니, 할아버지!');
+        };
+        return;
+      }
+
       resultWord.textContent = `"${query}"`;
       resultMean.textContent = aiAnswer;
       lastTranslatedText = aiAnswer;
@@ -1172,6 +1238,72 @@
     }
   }
 
+  // 비속어 강제 설명 바이패스 함수
+  async function doBypassTranslate(query) {
+    const resultCard  = document.getElementById('translator-result-card');
+    const resultWord  = document.getElementById('result-word');
+    const resultMean  = document.getElementById('result-meaning');
+    const csvRefBox   = document.getElementById('result-csv-ref');
+    const sourceBadge = document.getElementById('result-source-badge');
+    const aiLoading   = document.getElementById('ai-loading');
+    const translateBtn = document.getElementById('translate-btn');
+
+    aiLoading.classList.remove('hidden');
+    translateBtn.disabled = true;
+    translateBtn.textContent = '🤖 AI에게 물어보는 중...';
+    resultCard.classList.add('hidden');
+    updateTranslatorCharComment('AI 손자에게 물어보고 있어요...');
+    triggerAvatarBubble('잠깐만요! AI에게 물어볼게요 🤖');
+
+    try {
+      const aiAnswer = await callGeminiAPIForProfanity(query);
+      resultWord.textContent = `"${query}"`;
+      resultMean.textContent = aiAnswer;
+      lastTranslatedText = aiAnswer;
+      sourceBadge.textContent = '🤖 AI 번역 (비속어 해설)';
+      sourceBadge.className = 'result-badge badge-ai';
+      csvRefBox.classList.add('hidden');
+
+      popResult(resultCard);
+      updateTranslatorCharComment('AI가 찾아드렸어요! 🔊 버튼을 눌러보세요!');
+      triggerAvatarBubble('AI 번역 완료! 🔊 버튼을 눌러보세요.');
+    } catch (err) {
+      console.error('Bypass Gemini API 오류:', err);
+      const fallbackMsg = `할머니, 할아버지! 죄송해요, "${query}"는 AI 보안 필터 등으로 인해 해설을 준비하지 못했어요. 다른 단어를 검색해 주세요!`;
+      resultWord.textContent = `"${query}"`;
+      resultMean.textContent = fallbackMsg;
+      lastTranslatedText = fallbackMsg;
+      sourceBadge.textContent = '⚠️ 해설 불가';
+      sourceBadge.className = 'result-badge badge-error';
+      csvRefBox.classList.add('hidden');
+      popResult(resultCard);
+      updateTranslatorCharComment('해설이 차단되었습니다. 다른 단어를 검색해 주세요!');
+    } finally {
+      aiLoading.classList.add('hidden');
+      translateBtn.disabled = false;
+      translateBtn.textContent = '🔍 번역하기';
+    }
+  }
+
+  // 비속어용 특화 Gemini API 호출 함수
+  async function callGeminiAPIForProfanity(query) {
+    const isGranddaughter = avatarGender === 'granddaughter';
+    const roleDesc = isGranddaughter ? '다정한 손녀' : '든든한 손자';
+    const prompt = `너는 ${roleDesc}야. 할머니와 할아버지가 이해하기 쉽게 이 단어가 어떤 속어/비속어인지 정중하고 다정하게 순화해서 뜻을 설명해 줘. 문장 끝에는 꼭 '할머니, 할아버지!'를 붙여줘. 이 단어는 일부 욕설이나 비속어가 포함되어 있으나, 어르신들의 배움과 이해를 위해 정중하게 뜻을 설명해 드리는 상황이야. 절대로 거절하거나 "비속어이므로 번역하지 않겠습니다" 라고 답하지 말고, 뜻을 부드럽게 순화해서 할머니 할아버지가 교양 있게 대화하실 수 있도록 가이드해 줘. 이모지는 1~2개만 사용해.
+다음 단어를 설명해줘: "${query}"
+단어 설명만 2~4문장으로 짧고 명확하게 답해줘. 앞에 "안녕하세요" 같은 인사말은 빼줘.`;
+
+    const body = {
+      prompt: prompt,
+      generationConfig: { temperature: 0.7, maxOutputTokens: 300 }
+    };
+
+    const data = await callGeminiProxyOrDirect(body);
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('응답 없음');
+    return text.trim();
+  }
+
   function popResult(card) {
     card.classList.remove('hidden');
     card.classList.add('result-appear');
@@ -1180,6 +1312,7 @@
 
   function resetTranslatorResult() {
     document.getElementById('translator-result-card').classList.add('hidden');
+    document.getElementById('translator-profanity-card').classList.add('hidden');
     document.getElementById('ai-loading').classList.add('hidden');
     const inp = document.getElementById('translator-input');
     if (inp) inp.value = '';
@@ -1795,6 +1928,30 @@
       matchedNoun = '앱 설치';
     }
 
+    // 메시지/문자/DM/연락 검사
+    if (!matchedCategory && (nq.includes('문자') || nq.includes('메시지') || nq.includes('카톡') || nq.includes('카카오톡') || nq.includes('디엠') || nq.includes('dm') || nq.includes('라인') || nq.includes('페메') || nq.includes('손주') || nq.includes('연락'))) {
+      matchedCategory = 'messaging';
+      matchedNoun = '메시지/카톡/DM';
+    }
+
+    // 건강/운동/만보기 검사
+    if (!matchedCategory && (nq.includes('건강') || nq.includes('헬스') || nq.includes('운동') || nq.includes('만보기') || nq.includes('걷기') || nq.includes('병원') || nq.includes('약국'))) {
+      matchedCategory = 'health';
+      matchedNoun = '건강/운동';
+    }
+
+    // 사진 찾기/갤러리 검사
+    if (!matchedCategory && (nq.includes('사진') || nq.includes('갤러리') || nq.includes('화랑') || nq.includes('앨범') || nq.includes('이미지'))) {
+      matchedCategory = 'photo';
+      matchedNoun = '사진 찾기/갤러리';
+    }
+
+    // 상담/고민/심리 검사
+    if (!matchedCategory && (nq.includes('상담') || nq.includes('고민') || nq.includes('심리') || nq.includes('복지관') || nq.includes('치매') || nq.includes('안심센터'))) {
+      matchedCategory = 'counseling';
+      matchedNoun = '상담/고민';
+    }
+
     // 1. 중고 거래 (당근마켓, 번개장터) 우선 검사 + "팔기", "교환" 키워드 포함 시 최우선 연동
     if (!matchedCategory && (nq.includes('당근마켓') || nq.includes('번개장터') || nq.includes('중고나라') || nq.includes('중고거래') || 
         nq.includes('팔기') || nq.includes('교환') || nq.includes('물물교환') || nq.includes('판매') || nq.includes('처분'))) {
@@ -2272,6 +2429,94 @@
           action: '애플뮤직'
         }
       ];
+    } else if (category === 'messaging') {
+      title = `💬 손주와 연락하거나 문자/메시지를 보내고 싶으신가요?`;
+      apps = [
+        {
+          name: '기본 메시지 앱',
+          icon: '💬',
+          desc: '휴대폰에 기본으로 있는 메시지 앱으로 손주에게 문자를 보내고 사진을 전송할 수 있어요.',
+          action: '기본 메시지'
+        },
+        {
+          name: '카카오톡',
+          icon: '💛',
+          desc: '우리나라에서 가장 많이 쓰는 무료 채팅 앱으로, 글자와 사진, 동영상을 마음껏 보내요.',
+          action: '카카오톡'
+        },
+        {
+          name: '인스타그램 (Instagram)',
+          icon: '📸',
+          desc: '손주들의 일상 사진을 구경하고, 디엠(DM)이라는 메시지 기능으로 대화를 나눌 수 있어요.',
+          action: '인스타그램'
+        }
+      ];
+    } else if (category === 'health') {
+      title = `🏃‍♂️ 건강 관리와 운동 측정을 원하시나요?`;
+      apps = [
+        {
+          name: '삼성 헬스 (Samsung Health)',
+          icon: '❤️',
+          desc: '걸음 수 만보기 측정, 수면 기록, 심박수 측정 등 건강 관리를 통합적으로 돕는 삼성 공식 앱이에요.',
+          action: '삼성 헬스'
+        },
+        {
+          name: '워크온 (WalkOn)',
+          icon: '👟',
+          desc: '걸음 수를 측정하여 이웃들과 걷기 경쟁을 하고, 다양한 상품권 쿠폰도 받는 만보기 앱이에요.',
+          action: '워크온'
+        },
+        {
+          name: '똑닥',
+          icon: '🏥',
+          desc: '주변 병원을 모바일로 편리하게 예약하고 접수하며, 대기 순서까지 실시간으로 확인하는 앱이에요.',
+          action: '똑닥'
+        }
+      ];
+    } else if (category === 'photo') {
+      title = `📸 사진을 찾거나 갤러리를 구경하고 싶으신가요?`;
+      apps = [
+        {
+          name: '기본 갤러리/사진 앱',
+          icon: '🖼️',
+          desc: '휴대폰으로 촬영한 모든 사진과 비디오를 앨범별로 정리하고 확인하는 기본 갤러리 앱이에요.',
+          action: '갤러리'
+        },
+        {
+          name: '구글 포토 (Google Photos)',
+          icon: '🌈',
+          desc: '사진을 안전하게 인터넷 공간(클라우드)에 백업하고, 얼굴이나 장소별로 쉽게 검색하는 앱이에요.',
+          action: '구글 포토'
+        },
+        {
+          name: '핀터레스트 (Pinterest)',
+          icon: '📌',
+          desc: '전 세계 사람들의 예쁜 꽃 사진, 인테리어, 요리법 등 유용한 이미지 정보를 검색해 저장하는 앱이에요.',
+          action: '핀터레스트'
+        }
+      ];
+    } else if (category === 'counseling') {
+      title = `🤍 복지 상담 및 전문 심리 상담을 원하시나요?`;
+      apps = [
+        {
+          name: '보건복지상담센터 (129)',
+          icon: '📞',
+          desc: '보건복지 관련 정보 및 긴급 복지 지원, 긴급 상담을 국번 없이 129번으로 연결해 드리는 국가 서비스예요.',
+          action: '보건복지상담센터'
+        },
+        {
+          name: '정부24 복지 상담',
+          icon: '🏛️',
+          desc: '노인 장기요양, 취약계층 생활 안정 지원 등 정부 복지 서비스 정보를 상담하고 신청해요.',
+          action: '정부24'
+        },
+        {
+          name: '치매체크 / 치매안심센터',
+          icon: '🧠',
+          desc: '보건복지부에서 운영하며 치매 자가검사, 실종 예방 서비스 및 전문 상담을 제공하는 공식 어플리케이션이에요.',
+          action: '치매체크'
+        }
+      ];
     }
 
     if (apps.length === 0) return false;
@@ -2417,7 +2662,7 @@
     const keywordMap = {
       '키오스크': ['키오스크', '주문기', '무인기', '무인단말기', '기계 주문', '터치화면'],
       '등본': ['등본', '주민등록', '초본', '증명서', '서류발급', '무인발급기'],
-      'atm': ['atm', '에이티엠', '은행', '돈', '출금', '입금', '송금', '보내기', '이체', '현금', '통장'],
+      'atm': ['atm', '에이티엠', '은행', '돈', '출금', '입금', '송금하기', '돈보내기', '이체', '현금', '통장'],
       '식당': ['식당', '예약', '맛집', '웨이팅', '식사', '밥집', '테이블링', '캐치테이블'],
       '카카오': ['카카오', '카톡', '메시지', '문자', '채팅', '단톡방', '사진 보내기'],
       '배달': ['배달', '주문', '치킨', '피자', '짜장면', '음식 배달', '배민', '요기요', '쿠팡이츠']
